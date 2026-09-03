@@ -22,6 +22,8 @@ export const ErrorCode = {
   ROOT_USER_IMMUTABLE: 'ROOT_USER_IMMUTABLE',
   ROOT_GROUP_IMMUTABLE: 'ROOT_GROUP_IMMUTABLE',
   LINE_ALREADY_LINKED: 'LINE_ALREADY_LINKED',
+  /** LIFF token ถูกต้อง แต่บัญชี LINE ยังไม่ได้ผูกกับ profile ในระบบ */
+  LINE_ACCOUNT_NOT_LINKED: 'LINE_ACCOUNT_NOT_LINKED',
   /** LINE webhook ไม่มี/ใช้ลายเซ็นที่ไม่ตรงกับ raw request body (REQ-SEC-027) */
   LINE_SIGNATURE_INVALID: 'LINE_SIGNATURE_INVALID',
   /** LINE Login ปฏิเสธ ID token หรือ token ไม่ตรงกับ channel ที่เรียก (REQ-SEC-030) */

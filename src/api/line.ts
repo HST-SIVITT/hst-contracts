@@ -1,5 +1,13 @@
 import type { LiffPage, LineChannel } from '../enums/line';
 import type { LineLinkStatus, OwnerType, ServiceRequestStatus } from '../enums/profile';
+import type {
+  AssignmentRole,
+  AssignmentStatus,
+  OrderStatus,
+  PersistedOrderStatus,
+} from '../enums/order';
+import type { Availability } from '../enums/profile';
+import type { AccountStatus } from '../enums/equipment';
 
 /** ตัวตนจาก LINE ID token หลัง server verify กับ LINE แล้วเท่านั้น (REQ-SEC-030) */
 export interface VerifiedLineIdentity {
@@ -81,3 +89,136 @@ export interface LineLinkTokenView {
 
 /** query param ที่แนบไปกับลิงก์เชื่อมต่อ — หน้า LIFF อ่านค่านี้แล้วส่งกลับมาที่ API */
 export const LINE_LINK_TOKEN_PARAM = 'linkToken';
+
+/** นัดหมายที่ยังดำเนินการของคนไข้ใน LIFF profile — REQ-LIF-001 */
+export interface LiffPatientAppointmentView {
+  id: string;
+  code: string;
+  status: OrderStatus;
+  teleAppointmentAt: string;
+  teleLink: string;
+}
+
+/** payload หน้า LIFF Patient Profile — ไม่มีข้อมูลคนอื่นปะปนอยู่ในนี้ */
+export interface LiffPatientProfileView {
+  id: string;
+  nameTh: string;
+  nameEn: string;
+  phone: string;
+  hn: string | null;
+  lineLinkStatus: LineLinkStatus;
+  lat: string | null;
+  lng: string | null;
+  googleMapsApiKey: string | null;
+  appointments: LiffPatientAppointmentView[];
+}
+
+export interface LiffRiderTodayJobView {
+  id: string;
+  code: string;
+  role: AssignmentRole;
+  assignmentStatus: AssignmentStatus;
+  status: OrderStatus;
+  teleAppointmentAt: string;
+}
+
+/** โปรไฟล์ไรเดอร์ที่ได้จาก LINE owner mapping เท่านั้น — REQ-LIF-010 */
+export interface LiffRiderProfileView {
+  id: string;
+  nameTh: string;
+  nameEn: string;
+  staffCode: string | null;
+  phone: string;
+  accountStatus: AccountStatus;
+  availability: Availability;
+  todayJobs: LiffRiderTodayJobView[];
+}
+
+export interface LiffRiderWorkloadView {
+  weekJobCount: number;
+  monthJobCount: number;
+  completedJobCount: number;
+  inProgressJobCount: number;
+  acceptanceRate: number;
+  byRole: Array<{
+    role: AssignmentRole;
+    completedJobCount: number;
+    inProgressJobCount: number;
+    totalJobCount: number;
+  }>;
+}
+
+export interface LiffRiderJobsView {
+  items: LiffRiderTodayJobView[];
+  workload: LiffRiderWorkloadView;
+}
+
+export interface LiffOrderShippingAddressView {
+  addressLine: string | null;
+  provinceNameTh: string | null;
+  provinceNameEn: string | null;
+  districtNameTh: string | null;
+  districtNameEn: string | null;
+  subdistrictNameTh: string | null;
+  subdistrictNameEn: string | null;
+  postcode: string | null;
+  contactPhone: string | null;
+}
+
+export interface LiffOrderPatientView {
+  nameTh: string;
+  nameEn: string;
+  phone: string;
+  shippingAddress: LiffOrderShippingAddressView | null;
+}
+
+export interface LiffOrderAssignmentView {
+  role: AssignmentRole;
+  status: AssignmentStatus;
+}
+
+/**
+ * รายละเอียดใบงานฝั่ง LIFF — server ตัดข้อมูลคนไข้ทิ้งทั้งก้อนเมื่อจบงาน
+ * และคำนวณ allowedTransitions จาก state machine กลางเท่านั้น (REQ-LIF-012/023)
+ */
+export interface LiffRiderJobDetailView {
+  id: string;
+  code: string;
+  status: PersistedOrderStatus;
+  displayStatus: OrderStatus;
+  teleAppointmentAt: string;
+  assignments: LiffOrderAssignmentView[];
+  allowedTransitions: PersistedOrderStatus[];
+  patient: LiffOrderPatientView | null;
+  maxAttachmentFiles: number;
+}
+
+export interface LiffTechnicianJobView {
+  id: string;
+  code: string;
+  assignmentStatus: AssignmentStatus;
+  status: OrderStatus;
+  teleAppointmentAt: string;
+}
+
+export interface LiffTechnicianProfileView {
+  id: string;
+  nameTh: string;
+  nameEn: string;
+  staffCode: string | null;
+  phone: string;
+  accountStatus: AccountStatus;
+  availability: Availability;
+  todayJobs: LiffTechnicianJobView[];
+}
+
+export interface LiffTechnicianJobsView {
+  items: LiffTechnicianJobView[];
+  workload: {
+    weekJobCount: number;
+    monthJobCount: number;
+    completedJobCount: number;
+    inProgressJobCount: number;
+    acceptanceRate: number;
+  };
+}
