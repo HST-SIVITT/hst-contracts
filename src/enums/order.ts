@@ -290,3 +290,42 @@ export type OrderPickerTarget = (typeof OrderPickerTarget)[keyof typeof OrderPic
 export const ORDER_PICKER_TARGETS = Object.values(
   OrderPickerTarget,
 ) as readonly OrderPickerTarget[];
+
+/**
+ * FT-09 · `REQ-ORD-002/003` [MUST] · F03.1 — ฝั่งผู้รับของแจ้งเตือนใบงานที่ยิงเข้า LINE
+ *
+ * ⚠️ เป็น "ฝั่งในใบงาน" ไม่ใช่ LINE channel — ไรเดอร์คนเดียวรับทั้งสองขาได้
+ *    จึงต้องแยก `RIDER_OUTBOUND`/`RIDER_INBOUND` เหมือน `AssignmentRole` (ADR-031)
+ * ⚠️ ตารางประวัติ `order_notifications` เก็บค่านี้เป็น VARCHAR — เพิ่มค่าใหม่ไม่ต้องแก้ schema
+ */
+export const OrderNotificationRecipient = {
+  PATIENT: 'PATIENT',
+  TECHNICIAN: 'TECHNICIAN',
+  RIDER_OUTBOUND: 'RIDER_OUTBOUND',
+  RIDER_INBOUND: 'RIDER_INBOUND',
+} as const;
+export type OrderNotificationRecipient =
+  (typeof OrderNotificationRecipient)[keyof typeof OrderNotificationRecipient];
+
+/** `REQ-ORD-002` — checkbox เลือกผู้รับของปุ่ม "ส่งนัดหมาย" มีได้แค่ 2 ฝั่งนี้ (F03.1 `appointment.tele`) */
+export const APPOINTMENT_NOTIFICATION_RECIPIENTS = [
+  OrderNotificationRecipient.PATIENT,
+  OrderNotificationRecipient.TECHNICIAN,
+] as const satisfies readonly OrderNotificationRecipient[];
+
+/** `REQ-ORD-003` — เที่ยว Rider ที่ปุ่ม "แจ้งงาน Rider" ต้องส่งให้ แยกขาส่ง/ขากลับตาม ADR-031 */
+export const RIDER_NOTIFICATION_RECIPIENTS = [
+  OrderNotificationRecipient.RIDER_OUTBOUND,
+  OrderNotificationRecipient.RIDER_INBOUND,
+] as const satisfies readonly OrderNotificationRecipient[];
+
+/** ประวัติการส่งล่าสุดของแต่ละฝั่ง — `null` ใน `sentAt` = ยังไม่เคยส่งฝั่งนั้น */
+export interface OrderNotificationView {
+  recipient: OrderNotificationRecipient;
+  /** ชื่อผู้รับ ณ ตอนแสดงผล (ชื่อไทย) — `null` เมื่อใบงานยังไม่มีคนฝั่งนั้น */
+  name: string | null;
+  /** ยังไม่ได้ผูก LINE = ส่งไม่ได้ ต้องบอกผู้ใช้ก่อนกดปุ่ม ไม่ใช่ปล่อยให้ error ตอนส่ง */
+  linked: boolean;
+  sentAt: string | null;
+  sentCount: number;
+}

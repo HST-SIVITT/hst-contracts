@@ -40,9 +40,9 @@ export interface MessageTemplateFieldSpec {
 export interface MessageTemplateDefinition {
   key: MessageTemplateKey;
   /**
-   * OA ที่ใช้ส่งข้อความนี้ — มีได้มากกว่า 1 ช่องทาง (`appointment.tele` ส่งทั้งคนไข้และ Technician)
-   * คอลัมน์ `message_templates.channel` เก็บได้ค่าเดียวจึงเก็บ "ช่องทางหลัก" = ตัวแรกของ array นี้
-   * (assumption `Q-048`)
+   * OA ที่ใช้ส่งข้อความนี้ — คอลัมน์ `message_templates.channel` เก็บ "ช่องทางหลัก" = ตัวแรกของ array นี้
+   * `Q-048` (ตอบแล้ว 2026-09-04) — ตอนนี้ทุกแม่แบบมีช่องทางเดียว เพราะ `appointment.tele`
+   * ถูกแยกเป็น `.patient` / `.technician` แล้ว · array ยังคงไว้เผื่อแม่แบบหลายช่องทางในอนาคต
    */
   channels: readonly LineChannel[];
   /** true = ส่งเป็น Flex Message → ต้องมีช่อง `altText` เสมอ */
@@ -85,6 +85,24 @@ const altText = (placeholders?: readonly string[]) => line('altText', LINE_ALT_T
 const LABEL_MAX = 40;
 const HEADING_MAX = 80;
 
+/**
+ * ช่องของการ์ด "แจ้งเตือน Tele" — ใช้ร่วมกันทั้งแถวคนไข้และแถว Technician (`Q-048`)
+ * โครงการ์ดเหมือนกันทุกช่อง ต่างกันแค่ **ข้อความที่ผู้ดูแลกรอก** จึงประกอบ Flex ด้วยฟังก์ชันเดียวได้
+ */
+const APPOINTMENT_TELE_FIELDS: readonly MessageTemplateFieldSpec[] = [
+  line('headerTitle', HEADING_MAX),
+  line('patientLine', HEADING_MAX, ['patientName']),
+  line('labelProvider', LABEL_MAX),
+  line('labelService', LABEL_MAX),
+  line('serviceName', LABEL_MAX),
+  line('labelDate', LABEL_MAX),
+  line('labelTime', LABEL_MAX),
+  line('labelNote', LABEL_MAX),
+  line('buttonLabel', LINE_BUTTON_LABEL_MAX),
+  line('footerText', 100, ['sentAt']),
+  altText(['patientName']),
+];
+
 export const MESSAGE_TEMPLATE_DEFINITIONS: readonly MessageTemplateDefinition[] = [
   {
     key: MessageTemplateKey.PATIENT_WELCOME,
@@ -117,25 +135,22 @@ export const MESSAGE_TEMPLATE_DEFINITIONS: readonly MessageTemplateDefinition[] 
   },
   {
     // F03.2 `[f2-line-2.png]` — ทุกข้อความบนการ์ดต้องแก้ได้ ค่าที่ระบบเติมเองคือชื่อ/วัน/เวลา/หมายเหตุ
-    key: MessageTemplateKey.APPOINTMENT_TELE,
-    channels: [LineChannel.PATIENT, LineChannel.TECHNICIAN],
+    key: MessageTemplateKey.APPOINTMENT_TELE_PATIENT,
+    channels: [LineChannel.PATIENT],
     flex: true,
-    fields: [
-      line('headerTitle', HEADING_MAX),
-      line('patientLine', HEADING_MAX, ['patientName']),
-      line('labelProvider', LABEL_MAX),
-      line('labelService', LABEL_MAX),
-      line('serviceName', LABEL_MAX),
-      line('labelDate', LABEL_MAX),
-      line('labelTime', LABEL_MAX),
-      line('labelNote', LABEL_MAX),
-      line('buttonLabel', LINE_BUTTON_LABEL_MAX),
-      line('footerText', 100, ['sentAt']),
-      altText(['patientName']),
-    ],
+    fields: APPOINTMENT_TELE_FIELDS,
+  },
+  {
+    // `Q-048` — การ์ดชุดเดียวกันแต่เป็นคนละแถว ผู้ดูแลจึงแก้ข้อความฝั่ง Technician ต่างจากฝั่งคนไข้ได้
+    key: MessageTemplateKey.APPOINTMENT_TELE_TECHNICIAN,
+    channels: [LineChannel.TECHNICIAN],
+    flex: true,
+    fields: APPOINTMENT_TELE_FIELDS,
   },
   {
     // F03.2 `[f2-rider-1.png]` — จุดรับ = ข้อมูลโรงพยาบาล · จุดส่ง = ที่อยู่ SHIPPING ของคนไข้
+    // `Q-051` (ตอบแล้ว 2026-09-04) — ชื่อ/ที่อยู่/เบอร์ของจุดรับ **ไม่อยู่ในแม่แบบแล้ว**
+    // ย้ายไปเป็น master data `pickup_locations` ที่เลือกต่อใบงาน (migration `0028`)
     key: MessageTemplateKey.JOB_NEW_RIDER,
     channels: [LineChannel.RIDER],
     flex: true,
@@ -168,7 +183,23 @@ export function messageTemplateDefinition(
   return MESSAGE_TEMPLATE_DEFINITIONS.find((definition) => definition.key === key);
 }
 
-/** ช่องทางหลักที่เก็บลงคอลัมน์ `channel` — ตัวแรกของ `channels` (`Q-048`) */
+/**
+ * `Q-048` — แม่แบบนัดหมาย Tele ของช่องทางนั้น
+ * ใช้ตัวนี้ตัวเดียวทั้งฝั่ง API และตอนอ่านประวัติ ห้ามพิมพ์ชื่อ key เองในโค้ดเรียกใช้
+ */
+export function appointmentTeleTemplateKey(channel: LineChannel): MessageTemplateKey {
+  return channel === LineChannel.TECHNICIAN
+    ? MessageTemplateKey.APPOINTMENT_TELE_TECHNICIAN
+    : MessageTemplateKey.APPOINTMENT_TELE_PATIENT;
+}
+
+/** `Q-048` — ทุก key ของการ์ดนัดหมาย Tele (ใช้กรองประวัติการส่งให้ครบทั้งสองฝั่ง) */
+export const APPOINTMENT_TELE_TEMPLATE_KEYS: readonly MessageTemplateKey[] = [
+  MessageTemplateKey.APPOINTMENT_TELE_PATIENT,
+  MessageTemplateKey.APPOINTMENT_TELE_TECHNICIAN,
+];
+
+/** ช่องทางหลักที่เก็บลงคอลัมน์ `channel` — ตัวแรกของ `channels` */
 export function messageTemplatePrimaryChannel(definition: MessageTemplateDefinition): LineChannel {
   return definition.channels[0];
 }

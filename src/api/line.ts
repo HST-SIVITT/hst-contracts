@@ -222,3 +222,21 @@ export interface LiffTechnicianJobsView {
     acceptanceRate: number;
   };
 }
+
+/**
+ * payload หน้ารายละเอียดงานของ Technician — `REQ-LIF-032` · DOM-02 §2.6 ตารางฝั่ง Technician
+ *
+ * ⚠️ `teleLink` มีเฉพาะตอนที่ยังไม่ terminal — จบงานแล้วถือเป็นข้อมูลของใบงานที่ไม่ต้องเปิดต่อ
+ * ⚠️ ไม่มี `maxAttachmentFiles` เพราะฝั่ง Technician ไม่มีปุ่มที่แนบไฟล์ (DOM-02 §2.6 · `Q-049`)
+ */
+export interface LiffTechnicianJobDetailView {
+  id: string;
+  code: string;
+  status: PersistedOrderStatus;
+  displayStatus: OrderStatus;
+  teleAppointmentAt: string;
+  teleLink: string | null;
+  assignments: LiffOrderAssignmentView[];
+  allowedTransitions: PersistedOrderStatus[];
+  patient: LiffOrderPatientView | null;
+}

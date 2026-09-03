@@ -24,8 +24,13 @@ export const MessageTemplateKey = {
   PATIENT_WAITING_ADMIN: 'patient.waitingAdmin',
   /** F03 · REQ-SRQ-012 — เคยถูก Reject แล้วกด "เริ่มใช้งาน" ซ้ำ */
   PATIENT_LINK_FAILED: 'patient.linkFailed',
-  /** F03 · REQ-ORD-002 — Flex "แจ้งเตือน Tele" ส่งถึงคนไข้และ Technician (T-060) */
-  APPOINTMENT_TELE: 'appointment.tele',
+  /**
+   * F03 · REQ-ORD-002 — Flex "แจ้งเตือน Tele" (T-060)
+   * `Q-048` (ตอบแล้ว 2026-09-04) — **แยกคนละแถวต่อผู้รับ** เพื่อให้แก้ข้อความสองฝั่งต่างกันได้
+   * (การ์ดของ Technician ไม่ต้องขึ้นต้นว่า "คุณ<ชื่อคนไข้>")
+   */
+  APPOINTMENT_TELE_PATIENT: 'appointment.tele.patient',
+  APPOINTMENT_TELE_TECHNICIAN: 'appointment.tele.technician',
   /** F03 · REQ-ORD-003 — Flex "แจ้งงาน Rider" พร้อมปุ่มรับงาน/ยกเลิก (T-061) */
   JOB_NEW_RIDER: 'job.newRider',
   /** F03 · REQ-DOM-012 — แจ้ง Technician เมื่อถูก assign งาน/นัดหมาย */

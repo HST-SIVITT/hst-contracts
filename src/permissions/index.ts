@@ -21,15 +21,28 @@ export type PermissionSubject = (typeof PermissionSubject)[keyof typeof Permissi
 
 export const PERMISSION_SUBJECTS = Object.values(PermissionSubject) as readonly PermissionSubject[];
 
-/** ระดับสิทธิ์ต่อเมนู — DOM-03 §3.1 · REQ-GRP-010 [MUST] */
+/**
+ * ระดับสิทธิ์ต่อเมนู — DOM-03 §3.1 · REQ-GRP-010 [MUST]
+ *
+ * `FULL` เพิ่มเข้ามาตามคำตอบ `Q-045` (2026-09-04): เจ้าของงานต้องการให้ "ลบเรคคอร์ด"
+ * เป็นสิทธิ์ที่กำหนดแยกจาก "แก้ไข" ได้ — คนที่มีแค่ `MAINTAIN` จึงแก้ไข/ยกเลิกได้แต่ลบไม่ได้
+ * ⚠️ คอลัมน์ `group_permissions.level` เป็น VARCHAR(20) จึง**ไม่ต้อง migration**
+ *    และแถวเดิมที่เป็น `MAINTAIN` ยังคงเป็น `MAINTAIN` (= เสียสิทธิ์ลบ ต้องไปตั้งใหม่เอง)
+ */
 export const PermissionLevel = {
   NONE: 'NONE',
   READ_ONLY: 'READ_ONLY',
   MAINTAIN: 'MAINTAIN',
+  FULL: 'FULL',
 } as const;
 export type PermissionLevel = (typeof PermissionLevel)[keyof typeof PermissionLevel];
 
-const LEVEL_RANK: Record<PermissionLevel, number> = { NONE: 0, READ_ONLY: 1, MAINTAIN: 2 };
+const LEVEL_RANK: Record<PermissionLevel, number> = {
+  NONE: 0,
+  READ_ONLY: 1,
+  MAINTAIN: 2,
+  FULL: 3,
+};
 
 /** เทียบว่าสิทธิ์ที่มีถึงระดับที่ต้องการหรือยัง — ใช้ทั้ง API guard และการซ่อนปุ่มฝั่ง UI */
 export function satisfiesLevel(held: PermissionLevel, required: PermissionLevel): boolean {
