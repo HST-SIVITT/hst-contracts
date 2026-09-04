@@ -130,27 +130,50 @@ export function assigneeTypeForRole(role: AssignmentRole): AssigneeType {
 export interface OrderTransitionRule {
   /** Admin (system_user ที่มีสิทธิ์ `orders = MAINTAIN`) ทำได้หรือไม่ */
   readonly admin: boolean;
-  /** บทบาทใน `order_assignments` ที่ทำได้ — ว่าง = ไม่มีใครนอกจาก Admin */
+  /** บทบาทใน `order_assignments` ที่ทำได้**หลังกด "รับงาน" แล้ว** — ว่าง = ไม่มีใครนอกจาก Admin */
   readonly assignmentRoles: readonly AssignmentRole[];
+  /**
+   * บทบาทที่ทำ transition นี้ได้**ทั้งที่ยังไม่กด "รับงาน"** (`assignment.status = PENDING_ACCEPT`)
+   * — มาจากแถว "รอรับงาน" ของ DOM-02 §2.6 ซึ่งมีปุ่ม `รับงาน` · `ยกเลิก` เท่านั้น
+   * จึงว่างเสมอยกเว้น transition ไป `CANCELLED`
+   */
+  readonly pendingAcceptRoles: readonly AssignmentRole[];
   /** REQ-ORD-024 — ยกเลิกต้องกรอกหมายเหตุเสมอ */
   readonly noteRequired: boolean;
 }
 
-const CANCEL_RULE: OrderTransitionRule = {
-  admin: true,
-  assignmentRoles: [
-    AssignmentRole.RIDER_OUTBOUND,
-    AssignmentRole.RIDER_INBOUND,
-    AssignmentRole.TECHNICIAN,
-  ],
-  noteRequired: true,
-};
+const ALL_ASSIGNMENT_ROLES: readonly AssignmentRole[] = [
+  AssignmentRole.RIDER_OUTBOUND,
+  AssignmentRole.RIDER_INBOUND,
+  AssignmentRole.TECHNICIAN,
+];
 
-const ADMIN_ONLY: OrderTransitionRule = { admin: true, assignmentRoles: [], noteRequired: false };
+/**
+ * ✅ `Q-052` ตอบแล้ว (2026-09-04 · `cancel-per-table`) — **ตารางปุ่ม DOM-02 §2.6 เป็นตัวตัดสิน**
+ * ผู้รับงานยกเลิกได้เฉพาะสถานะที่แถวของบทบาทตนมีปุ่ม `ยกเลิก` เขียนไว้จริงเท่านั้น
+ * (แถวที่เป็น "ไม่มีปุ่ม (View Only)" หรือไม่มีแถวของบทบาทนั้นเลย = ยกเลิกไม่ได้ · `Q-053`)
+ *
+ * ⚠️ **Admin ยังยกเลิกได้ทุกสถานะที่ยังไม่จบ** ตาม §2.4 แถวสุดท้าย — §2.6 เป็นตารางของฝั่ง LIFF เท่านั้น
+ * ⚠️ ตราบใดที่ยังไม่กด "รับงาน" ทุกบทบาทเห็นแถว "รอรับงาน" ซึ่งมีปุ่ม `ยกเลิก` → `pendingAcceptRoles`
+ */
+const cancelRule = (...rolesAfterAccept: AssignmentRole[]): OrderTransitionRule => ({
+  admin: true,
+  assignmentRoles: rolesAfterAccept,
+  pendingAcceptRoles: ALL_ASSIGNMENT_ROLES,
+  noteRequired: true,
+});
+
+const ADMIN_ONLY: OrderTransitionRule = {
+  admin: true,
+  assignmentRoles: [],
+  pendingAcceptRoles: [],
+  noteRequired: false,
+};
 
 const withRoles = (...roles: AssignmentRole[]): OrderTransitionRule => ({
   admin: true,
   assignmentRoles: roles,
+  pendingAcceptRoles: [],
   noteRequired: false,
 });
 
@@ -167,32 +190,40 @@ export const ORDER_TRANSITION_RULES: Readonly<
 > = {
   PENDING_APPOINTMENT: {
     [OrderStatus.APPOINTED]: ADMIN_ONLY,
-    [OrderStatus.CANCELLED]: CANCEL_RULE,
+    /** §2.6 ไม่มีแถวของสถานะ "รอนัดหมาย" เลยทั้งสองฝั่ง → ผู้รับงานที่กดรับแล้วยกเลิกไม่ได้ (`Q-053`) */
+    [OrderStatus.CANCELLED]: cancelRule(),
   },
   APPOINTED: {
     [OrderStatus.READY_TO_DISPATCH]: ADMIN_ONLY,
-    [OrderStatus.CANCELLED]: CANCEL_RULE,
+    /** §2.6 แถว "ยืนยันรับงาน" — ทั้ง Rider (ขาส่ง/ขากลับ) และ Technician มีปุ่ม `ยกเลิก` เท่านั้น */
+    [OrderStatus.CANCELLED]: cancelRule(...ALL_ASSIGNMENT_ROLES),
   },
   READY_TO_DISPATCH: {
     [OrderStatus.DELIVERED]: withRoles(AssignmentRole.RIDER_OUTBOUND),
-    [OrderStatus.CANCELLED]: CANCEL_RULE,
+    /** §2.6 แถว "รอจัดส่ง" — ขาส่ง (`ส่งมอบอุปกรณ์แล้ว` · `ยกเลิก`) และ Technician (`ยกเลิก`)
+     *  ขากลับเป็น View Only ตาม §2.7 ข้อ 3 */
+    [OrderStatus.CANCELLED]: cancelRule(AssignmentRole.RIDER_OUTBOUND, AssignmentRole.TECHNICIAN),
   },
   DELIVERED: {
     [OrderStatus.AWAITING_PICKUP]: withRoles(AssignmentRole.TECHNICIAN),
-    [OrderStatus.CANCELLED]: CANCEL_RULE,
+    /** §2.6 — ขาส่งเห็น "ส่งมอบอุปกรณ์แล้ว" = ไม่มีปุ่ม · Technician เห็น "รอทำ Tele" ที่มี `ยกเลิก` */
+    [OrderStatus.CANCELLED]: cancelRule(AssignmentRole.TECHNICIAN),
   },
   AWAITING_PICKUP: {
     [OrderStatus.COLLECTED]: withRoles(AssignmentRole.RIDER_INBOUND),
-    [OrderStatus.CANCELLED]: CANCEL_RULE,
+    /** §2.6 แถว "รอรับอุปกรณ์กลับ" — เฉพาะขากลับ (`รับคืนอุปกรณ์แล้ว` · `ยกเลิก`) · Technician View Only */
+    [OrderStatus.CANCELLED]: cancelRule(AssignmentRole.RIDER_INBOUND),
   },
   COLLECTED: {
     [OrderStatus.RETURNED_TO_STOCK]: withRoles(AssignmentRole.RIDER_INBOUND),
-    [OrderStatus.CANCELLED]: CANCEL_RULE,
+    /** §2.6 แถว "รับคืนอุปกรณ์แล้ว" — ขากลับมีแค่ปุ่ม `เก็บอุปกรณ์แล้ว` · ไม่มี `ยกเลิก` */
+    [OrderStatus.CANCELLED]: cancelRule(),
   },
   RETURNED_TO_STOCK: {
     /** ✅ Q-005 — ปิดงานเป็น "สำเร็จ" ได้เฉพาะ Admin · LIFF ต้องไม่มีปุ่มนี้เลย */
     [OrderStatus.COMPLETED]: ADMIN_ONLY,
-    [OrderStatus.CANCELLED]: CANCEL_RULE,
+    /** §2.6 แถว "เก็บอุปกรณ์แล้ว" — View Only ทั้งสองฝั่ง */
+    [OrderStatus.CANCELLED]: cancelRule(),
   },
   COMPLETED: {},
   CANCELLED: {},
@@ -231,6 +262,21 @@ export function orderJourneyIndex(status: OrderStatus): number {
 /** สถานะนี้เปลี่ยนต่อไม่ได้อีกแล้วหรือยัง — DOM-02 §2.4 */
 export function isTerminalOrderStatus(status: OrderStatus): boolean {
   return (TERMINAL_ORDER_STATUSES as readonly OrderStatus[]).includes(status);
+}
+
+/**
+ * บทบาทที่ทำ transition นี้ได้ **เมื่อ assignment ของคนกดอยู่ในสถานะที่ให้มา** — DOM-02 §2.6
+ *
+ * `PENDING_ACCEPT` ใช้แถว "รอรับงาน" (ยกเลิกได้อย่างเดียว) · `ACCEPTED` ใช้แถวตามสถานะของใบงาน
+ * · `CANCELLED`/`NOT_ASSIGNED` = ถูกถอดออกแล้ว ทำอะไรไม่ได้ (`REQ-LIF-023.2`)
+ */
+export function transitionRolesFor(
+  rule: OrderTransitionRule,
+  assignmentStatus: AssignmentStatus,
+): readonly AssignmentRole[] {
+  if (assignmentStatus === AssignmentStatus.ACCEPTED) return rule.assignmentRoles;
+  if (assignmentStatus === AssignmentStatus.PENDING_ACCEPT) return rule.pendingAcceptRoles;
+  return [];
 }
 
 /** กติกาของ transition นี้ (undefined = ทำไม่ได้เลย ไม่ว่าใครก็ตาม) */
