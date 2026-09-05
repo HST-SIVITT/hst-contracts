@@ -99,8 +99,18 @@ export interface LiffPatientAppointmentView {
   teleLink: string;
 }
 
-/** payload หน้า LIFF Patient Profile — ไม่มีข้อมูลคนอื่นปะปนอยู่ในนี้ */
-export interface LiffPatientProfileView {
+/** หน้า Profile ครั้งแรกยังไม่มี patient record แต่ต้องแสดง LINE profile และสถานะคำร้องได้ (REQ-SRQ-005) */
+export interface LiffPatientPendingProfileView {
+  profileState: 'PENDING';
+  displayName: string | null;
+  pictureUrl: string | null;
+  lineLinkStatus: LineLinkStatus;
+  serviceRequestStatus: ServiceRequestStatus;
+}
+
+/** payload หน้า LIFF Patient Profile ที่ผูกกับ patient แล้ว — ไม่มีข้อมูลคนอื่นปะปนอยู่ในนี้ */
+export interface LiffPatientLinkedProfileView {
+  profileState: 'LINKED';
   id: string;
   nameTh: string;
   nameEn: string;
@@ -112,6 +122,10 @@ export interface LiffPatientProfileView {
   googleMapsApiKey: string | null;
   appointments: LiffPatientAppointmentView[];
 }
+
+export type LiffPatientProfileView =
+  | LiffPatientPendingProfileView
+  | LiffPatientLinkedProfileView;
 
 export interface LiffRiderTodayJobView {
   id: string;

@@ -84,6 +84,8 @@ export const LINE_LINK_TOKEN_TTL_DEFAULT_HOURS = 24;
 
 export const SESSION_IDLE_DEFAULT_MINUTES = 30;
 export const SESSION_CHECK_INTERVAL_DEFAULT_SECONDS = 60;
+/** เพดานระยะเวลาล็อกบัญชีเมื่อ deployment ไม่ได้ override — REQ-AUTH-013 */
+export const SECURITY_LOCKOUT_MAX_MINUTES_DEFAULT = 15;
 
 /**
  * ขอบเขตของค่าตั้งค่าที่เป็นตัวเลข — **แหล่งความจริงเดียว** ที่ทั้ง API และ web ใช้ร่วมกัน
@@ -96,7 +98,7 @@ export const SETTING_NUMBER_BOUNDS: Readonly<Record<string, { min: number; max: 
   [SettingKey.SECURITY_MAX_LOGIN_ATTEMPTS]: { min: 1, max: 10 },
   // TEC-05 §5.5 แนะนำ 24 ชม. · ต่ำกว่า 1 ชม. ใช้งานจริงไม่ทัน · เกิน 30 วันลิงก์ที่หลุดออกไปยังใช้ได้นานเกินไป
   [SettingKey.SECURITY_LINE_LINK_TOKEN_TTL_HOURS]: { min: 1, max: 720 },
-  [SettingKey.SECURITY_LOCKOUT_MINUTES]: { min: 1, max: 1440 },
+  [SettingKey.SECURITY_LOCKOUT_MINUTES]: { min: 1, max: SECURITY_LOCKOUT_MAX_MINUTES_DEFAULT },
   // Assumption Q-056 — ห้าม 0 เพราะจะทำให้ทุก session หมดทันที
   [SettingKey.SECURITY_SESSION_IDLE_MINUTES]: { min: 1, max: 1440 },
   // Assumption Q-056 — ถี่กว่า 10 วินาทีเพิ่มโหลด DB โดยไม่ช่วย UX อย่างมีนัยสำคัญ
