@@ -90,6 +90,26 @@ export interface LineLinkTokenView {
 /** query param ที่แนบไปกับลิงก์เชื่อมต่อ — หน้า LIFF อ่านค่านี้แล้วส่งกลับมาที่ API */
 export const LINE_LINK_TOKEN_PARAM = 'linkToken';
 
+/**
+ * query param ที่ LINE ห่อ query เดิมของ LIFF URL ไว้ตอนพาไปหน้า login — `REQ-SEC-032`
+ * หน้า LIFF ต้องอ่าน `linkToken` จากในนี้ด้วย ไม่งั้นลิงก์ที่เจ้าหน้าที่แชร์จะกลายเป็น "ไม่มี token"
+ */
+export const LIFF_STATE_PARAM = 'liff.state';
+
+/**
+ * ขั้น "ยืนยันตัวตนก่อนผูกบัญชี" ของลิงก์/QR ที่เจ้าหน้าที่ออกให้ — `REQ-SEC-032`
+ * คืนค่าโดย **ไม่ใช้ token ทิ้ง** เพื่อให้ผู้ใช้เห็น LINE profile ของตัวเองแล้วกรอกรหัสประจำตัวก่อน
+ * ไม่มีข้อมูลของ profile ปลายทางอยู่ในนี้เลย (ชื่อ/เบอร์/รหัสประจำตัว) — กันลิงก์หลุดแล้วอ่านข้อมูลพนักงานได้
+ */
+export interface LiffLinkVerifyView {
+  lineUserId: string;
+  displayName: string | null;
+  pictureUrl: string | null;
+  ownerType: OwnerType;
+  /** true = ต้องกรอกรหัสประจำตัวให้ตรงกับ record ปลายทางก่อนจึงจะผูกได้ */
+  staffCodeRequired: boolean;
+}
+
 /** นัดหมายที่ยังดำเนินการของคนไข้ใน LIFF profile — REQ-LIF-001 */
 export interface LiffPatientAppointmentView {
   id: string;
