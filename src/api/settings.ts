@@ -39,6 +39,10 @@ export const SettingKey = {
   SECURITY_LOCKOUT_MINUTES: 'security.lockoutMinutes',
   SECURITY_PASSWORD_POLICY: 'security.passwordPolicy',
   SECURITY_AUDIT_LOG_RETENTION_DAYS: 'security.auditLogRetentionDays',
+  /** CMS ไม่มี activity เกินจำนวนนี้ให้เพิกถอน session — REQ-AUTH-011 */
+  SECURITY_SESSION_IDLE_MINUTES: 'security.sessionIdleMinutes',
+  /** รอบตรวจ session ของ secret page — REQ-AUTH-012 */
+  SECURITY_SESSION_CHECK_INTERVAL_SECONDS: 'security.sessionCheckIntervalSeconds',
   /** อายุลิงก์/QR เชื่อมต่อ LINE (ชั่วโมง) — TEC-05 §5.5 · REQ-SEC-031 · ห้าม hardcode (REQ-SET-001) */
   SECURITY_LINE_LINK_TOKEN_TTL_HOURS: 'security.lineLinkTokenTtlHours',
   GENERAL_PAGINATION_OPTIONS: 'general.paginationOptions',
@@ -49,6 +53,8 @@ export const SettingKey = {
   S3_ENDPOINT: 's3.endpoint',
   S3_REGION: 's3.region',
   S3_BUCKET: 's3.bucket',
+  /** prefix กลางของ object key ใหม่ทั้งหมด — REQ-SET-022 */
+  S3_UPLOAD_FOLDER: 's3.uploadFolder',
   S3_ACCESS_KEY_ID: 's3.accessKeyId',
   S3_SECRET_ACCESS_KEY: 's3.secretAccessKey',
   S3_FORCE_PATH_STYLE: 's3.forcePathStyle',
@@ -76,6 +82,9 @@ export const AUDIT_LOG_RETENTION_MAX_DAYS = 3650;
 /** ค่าเริ่มต้นของอายุลิงก์เชื่อมต่อ LINE — TEC-05 §5.5 "แนะนำ 24 ชม. ปรับได้ในตั้งค่า" */
 export const LINE_LINK_TOKEN_TTL_DEFAULT_HOURS = 24;
 
+export const SESSION_IDLE_DEFAULT_MINUTES = 30;
+export const SESSION_CHECK_INTERVAL_DEFAULT_SECONDS = 60;
+
 /**
  * ขอบเขตของค่าตั้งค่าที่เป็นตัวเลข — **แหล่งความจริงเดียว** ที่ทั้ง API และ web ใช้ร่วมกัน
  *
@@ -88,6 +97,10 @@ export const SETTING_NUMBER_BOUNDS: Readonly<Record<string, { min: number; max: 
   // TEC-05 §5.5 แนะนำ 24 ชม. · ต่ำกว่า 1 ชม. ใช้งานจริงไม่ทัน · เกิน 30 วันลิงก์ที่หลุดออกไปยังใช้ได้นานเกินไป
   [SettingKey.SECURITY_LINE_LINK_TOKEN_TTL_HOURS]: { min: 1, max: 720 },
   [SettingKey.SECURITY_LOCKOUT_MINUTES]: { min: 1, max: 1440 },
+  // Assumption Q-056 — ห้าม 0 เพราะจะทำให้ทุก session หมดทันที
+  [SettingKey.SECURITY_SESSION_IDLE_MINUTES]: { min: 1, max: 1440 },
+  // Assumption Q-056 — ถี่กว่า 10 วินาทีเพิ่มโหลด DB โดยไม่ช่วย UX อย่างมีนัยสำคัญ
+  [SettingKey.SECURITY_SESSION_CHECK_INTERVAL_SECONDS]: { min: 10, max: 600 },
   [SettingKey.SECURITY_AUDIT_LOG_RETENTION_DAYS]: {
     min: AUDIT_LOG_RETENTION_MIN_DAYS,
     max: AUDIT_LOG_RETENTION_MAX_DAYS,
