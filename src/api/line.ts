@@ -112,6 +112,8 @@ export interface LiffPatientPendingProfileView {
 export interface LiffPatientLinkedProfileView {
   profileState: 'LINKED';
   id: string;
+  displayName: string | null;
+  pictureUrl: string | null;
   nameTh: string;
   nameEn: string;
   phone: string;
