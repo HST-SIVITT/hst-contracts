@@ -119,6 +119,37 @@ export interface LiffPatientAppointmentView {
   teleLink: string;
 }
 
+/**
+ * `REQ-LIF-041` [MUST] — 1 แถวใน section "รายการนัดหมาย" ของ LIFF คนไข้
+ *
+ * ⚠️ ฝั่งคนไข้ **ไม่ใช้คำว่า "ใบงาน"** — label ทุกตัวเป็น "รายการนัดหมาย" (`CR-010` ข้อ 4.2.1)
+ * ⚠️ ไม่มี field ของผู้รับงาน/ไรเดอร์อยู่ในนี้เลย — คนไข้ต้องไม่เห็นข้อมูลคนอื่น (`REQ-SEC-012`)
+ */
+export interface LiffPatientOrderListItemView {
+  id: string;
+  code: string;
+  status: OrderStatus;
+  teleAppointmentAt: string;
+  /** ที่อยู่จัดส่ง (ประกอบเป็นข้อความแล้ว) — `null` = คนไข้ยังไม่มีที่อยู่ชนิด SHIPPING */
+  shippingAddress: string | null;
+  /** ตำแหน่งจัดส่งอุปกรณ์ — มาจาก `patients.lat/lng` (ยังไม่มีพิกัดรายใบงาน · `Q-061`) */
+  lat: string | null;
+  lng: string | null;
+  /**
+   * `REQ-LIF-042` — แก้ตำแหน่งจัดส่งจากรายการนี้ได้หรือไม่
+   * API เป็นผู้ตัดสินจากสถานะใบงาน **ห้ามให้หน้าเว็บคำนวณเองซ้ำ** (กติกาเดียวกับ ADR-035)
+   */
+  locationEditable: boolean;
+}
+
+/** `REQ-LIF-041` — หน้า detail ของรายการนัดหมายฝั่งคนไข้ */
+export interface LiffPatientOrderDetailView extends LiffPatientOrderListItemView {
+  teleLink: string;
+  note: string | null;
+  /** browser key ของ Maps JavaScript API (ADR-028) — `null` = ยังไม่ได้ตั้งค่า */
+  googleMapsApiKey: string | null;
+}
+
 /** หน้า Profile ครั้งแรกยังไม่มี patient record แต่ต้องแสดง LINE profile และสถานะคำร้องได้ (REQ-SRQ-005) */
 export interface LiffPatientPendingProfileView {
   profileState: 'PENDING';
@@ -142,7 +173,13 @@ export interface LiffPatientLinkedProfileView {
   lat: string | null;
   lng: string | null;
   googleMapsApiKey: string | null;
+  /**
+   * `REQ-LIF-001` · `CR-010` ข้อ 4.2 — "นัดหมายและสถานะปัจจุบัน"
+   * **เฉพาะรายการของวันนี้ (วันไทย)** · ว่าง = หน้าเว็บต้องไม่แสดง section นี้เลย
+   */
   appointments: LiffPatientAppointmentView[];
+  /** `REQ-LIF-041` — section "รายการนัดหมาย": ทุกใบที่ยังไม่จบของคนไข้คนนี้ */
+  orders: LiffPatientOrderListItemView[];
 }
 
 export type LiffPatientProfileView =

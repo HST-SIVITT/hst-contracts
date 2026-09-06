@@ -6,6 +6,8 @@ export const AuditAction = {
   CHANGE_PASSWORD: 'CHANGE_PASSWORD',
   ACCOUNT_LOCKED: 'ACCOUNT_LOCKED',
   LINK_LINE: 'LINK_LINE',
+  /** `REQ-LOG-009` — ถอดบัญชี LINE ออกจาก profile (คู่ตรงข้ามของ `LINK_LINE`) */
+  UNLINK_LINE: 'UNLINK_LINE',
   CREATE: 'CREATE',
   UPDATE: 'UPDATE',
   DELETE: 'DELETE',

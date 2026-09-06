@@ -56,6 +56,23 @@ export const IN_PROGRESS_ORDER_STATUSES = [
   OrderStatus.RETURNED_TO_STOCK,
 ] as const;
 
+/**
+ * `REQ-LIF-042` [MUST] — สถานะที่ **คนไข้แก้ตำแหน่งจัดส่งเองได้** จากหน้า LIFF
+ *
+ * "รอยืนยันนัดหมาย" กับ "รอจัดส่ง" เท่านั้น — เลยจากนี้อุปกรณ์ออกเดินทางแล้ว
+ * การย้ายหมุดจะทำให้ไรเดอร์ถือการ์ดที่อยู่คนละที่กับปลายทางจริง (`CR-010` ข้อ 4.2.2)
+ * ⚠️ API เป็นผู้ตัดสินเสมอ หน้าเว็บอ่านจาก `locationEditable` ที่ส่งมาให้ ห้ามคำนวณซ้ำ (ADR-035)
+ */
+export const PATIENT_EDITABLE_LOCATION_STATUSES = [
+  OrderStatus.PENDING_APPOINTMENT,
+  OrderStatus.READY_TO_DISPATCH,
+] as const;
+
+/** `REQ-LIF-042` — ใบงานนี้ยังให้คนไข้ย้ายหมุดได้ไหม */
+export function canPatientEditOrderLocation(status: OrderStatus): boolean {
+  return (PATIENT_EDITABLE_LOCATION_STATUSES as readonly OrderStatus[]).includes(status);
+}
+
 /** สถานะที่ต้องปกปิดข้อมูลคนไข้ใน LIFF — REQ-LIF-023.4 / REQ-SEC-012 [MUST] */
 export const MASKED_ORDER_STATUSES = TERMINAL_ORDER_STATUSES;
 
@@ -364,6 +381,39 @@ export const RIDER_NOTIFICATION_RECIPIENTS = [
   OrderNotificationRecipient.RIDER_OUTBOUND,
   OrderNotificationRecipient.RIDER_INBOUND,
 ] as const satisfies readonly OrderNotificationRecipient[];
+
+/**
+ * `REQ-ORD-048` [MUST] — "รอบการแจ้งงาน" ของผู้รับ 1 ฝั่งบนหน้า list ใบงาน
+ *
+ * เป็นค่า **derived ตอนอ่าน** จาก `AssignmentStatus` + ประวัติใน `order_notifications`
+ * ไม่เคยเก็บลง DB (กติกาเดียวกับ `NO_ACTION` · ADR-003)
+ *
+ * ⚠️ `PENDING_ACCEPT` ถูกแตกเป็นสองสถานะ: ยังไม่ได้ส่งการ์ด = `NOT_NOTIFIED` (เทา)
+ *    · ส่งแล้วรอตอบรับ = `NOTIFIED` (น้ำเงิน) — "เปลี่ยนคนใหม่แล้วกลับไปเริ่มที่เทา" จึงเป็นจริงเสมอ
+ *    เพราะการ์ดที่เคยส่งผูกกับ `line_user_id` ของคนเดิม ไม่ใช่ของช่องนั้น (`Q-060`)
+ */
+export const OrderNotifyState = {
+  /** ยังไม่มีคนในช่อง หรือมีคนแล้วแต่ยังไม่เคยส่งการ์ดให้ **คนปัจจุบัน** */
+  NOT_NOTIFIED: 'NOT_NOTIFIED',
+  NOTIFIED: 'NOTIFIED',
+  ACCEPTED: 'ACCEPTED',
+  CANCELLED: 'CANCELLED',
+} as const;
+export type OrderNotifyState = (typeof OrderNotifyState)[keyof typeof OrderNotifyState];
+
+/**
+ * `REQ-ORD-048` — ประกอบสีจุดของช่องผู้รับงาน 1 ช่อง
+ * ลำดับความสำคัญ: ยกเลิก → ยืนยันรับงาน → แจ้งแล้ว → ยังไม่แจ้ง
+ */
+export function orderNotifyState(
+  assignment: AssignmentStatus,
+  notified: boolean,
+): OrderNotifyState {
+  if (assignment === AssignmentStatus.CANCELLED) return OrderNotifyState.CANCELLED;
+  if (assignment === AssignmentStatus.ACCEPTED) return OrderNotifyState.ACCEPTED;
+  if (assignment === AssignmentStatus.NOT_ASSIGNED) return OrderNotifyState.NOT_NOTIFIED;
+  return notified ? OrderNotifyState.NOTIFIED : OrderNotifyState.NOT_NOTIFIED;
+}
 
 /** ประวัติการส่งล่าสุดของแต่ละฝั่ง — `null` ใน `sentAt` = ยังไม่เคยส่งฝั่งนั้น */
 export interface OrderNotificationView {

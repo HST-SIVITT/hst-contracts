@@ -22,6 +22,8 @@ export const ErrorCode = {
   PICKUP_LOCATION_IN_USE: 'PICKUP_LOCATION_IN_USE',
   /** ใบงานยังไม่ได้เลือกจุดรับ จึงประกอบการ์ดแจ้งงาน Rider ไม่ได้ — Q-051 · REQ-ORD-003 */
   ORDER_PICKUP_LOCATION_REQUIRED: 'ORDER_PICKUP_LOCATION_REQUIRED',
+  /** คนไข้ย้ายหมุดตำแหน่งจัดส่งเองได้เฉพาะ "รอยืนยันนัดหมาย"/"รอจัดส่ง" — REQ-LIF-042 */
+  ORDER_LOCATION_NOT_EDITABLE: 'ORDER_LOCATION_NOT_EDITABLE',
   USER_GROUP_IN_USE: 'USER_GROUP_IN_USE',
   ROOT_USER_IMMUTABLE: 'ROOT_USER_IMMUTABLE',
   ROOT_GROUP_IMMUTABLE: 'ROOT_GROUP_IMMUTABLE',

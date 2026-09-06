@@ -1,4 +1,4 @@
-import { AssignmentStatus, OrderStatus, StatusAudience } from '../enums/order';
+import { AssignmentStatus, OrderNotifyState, OrderStatus, StatusAudience } from '../enums/order';
 import { EquipmentLocationStatus } from '../enums/equipment';
 
 /**
@@ -25,6 +25,25 @@ export const ASSIGNMENT_STATUS_COLORS: Readonly<Record<AssignmentStatus, string>
   PENDING_ACCEPT: '#F97316',
   ACCEPTED: '#16A34A',
   CANCELLED: '#DC2626',
+} as const;
+
+/**
+ * `REQ-ORD-048` — สีจุดของช่องผู้รับงานบนหน้า list ใบงาน (ไม่แสดงชื่อแล้ว เหลือแต่จุด)
+ *
+ * ⚠️ เทา/เขียว/แดง ใช้ค่าเดียวกับ `ASSIGNMENT_STATUS_COLORS` ตั้งใจให้ผู้ใช้อ่านต่อจากของเดิมได้
+ *    น้ำเงินเป็นค่าใหม่ค่าเดียว และเป็นสีเดียวกับ `ORDER_STATUS_COLORS.APPOINTED`
+ */
+export const ORDER_NOTIFY_STATE_COLORS: Readonly<Record<OrderNotifyState, string>> = {
+  NOT_NOTIFIED: '#9CA3AF',
+  NOTIFIED: '#2563EB',
+  ACCEPTED: '#16A34A',
+  CANCELLED: '#DC2626',
+} as const;
+
+/** `REQ-ORD-049` — ส่งการ์ดนัดหมายให้คนไข้แล้วหรือยัง (แสดงคู่กับ badge สถานะงาน) */
+export const ORDER_APPOINTMENT_NOTIFY_COLORS = {
+  NOT_SENT: '#9CA3AF',
+  SENT: '#16A34A',
 } as const;
 
 /** สี badge ของสถานะเครื่อง — DOM-04 §4.8 · REQ-EQP-012 */
