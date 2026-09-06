@@ -161,6 +161,8 @@ export interface LiffRiderTodayJobView {
 /** โปรไฟล์ไรเดอร์ที่ได้จาก LINE owner mapping เท่านั้น — REQ-LIF-010 */
 export interface LiffRiderProfileView {
   id: string;
+  displayName: string | null;
+  pictureUrl: string | null;
   nameTh: string;
   nameEn: string;
   staffCode: string | null;
@@ -239,6 +241,8 @@ export interface LiffTechnicianJobView {
 
 export interface LiffTechnicianProfileView {
   id: string;
+  displayName: string | null;
+  pictureUrl: string | null;
   nameTh: string;
   nameEn: string;
   staffCode: string | null;
