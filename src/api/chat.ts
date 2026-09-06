@@ -44,3 +44,19 @@ export interface ChatMessageView {
 export interface ChatThreadView extends ChatThreadListItemView {
   messages: ChatMessageView[];
 }
+
+/** ตัวเลือก profile ที่ยังไม่ผูก LINE และอยู่ใน channel เดียวกับ thread (`REQ-CHT-007`) */
+export interface ChatLineLinkCandidateView {
+  id: string;
+  nameTh: string;
+  nameEn: string;
+  /** Patient = HN, Rider/Technician = staff code; ไม่มีค่าให้เป็น null */
+  referenceCode: string | null;
+  phone: string;
+}
+
+export interface ChatLineConnectCardResult {
+  sent: true;
+  ownerType: OwnerType;
+  ownerId: string;
+}

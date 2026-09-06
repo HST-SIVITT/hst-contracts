@@ -175,6 +175,18 @@ export const MESSAGE_TEMPLATE_DEFINITIONS: readonly MessageTemplateDefinition[] 
     flex: false,
     fields: [text('body', LINE_TEXT_MAX, ['orderCode', 'patientName', 'teleAppointment'])],
   },
+  {
+    key: MessageTemplateKey.CHAT_LINE_CONNECT,
+    channels: [LineChannel.PATIENT, LineChannel.RIDER, LineChannel.TECHNICIAN],
+    flex: true,
+    fields: [
+      line('headerTitle', HEADING_MAX),
+      text('body', 160),
+      line('buttonLabel', LINE_BUTTON_LABEL_MAX),
+      line('footerText', 100, ['sentAt']),
+      altText(),
+    ],
+  },
 ] as const;
 
 export function messageTemplateDefinition(

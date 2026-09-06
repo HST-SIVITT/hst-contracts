@@ -35,6 +35,8 @@ export const MessageTemplateKey = {
   JOB_NEW_RIDER: 'job.newRider',
   /** F03 · REQ-DOM-012 — แจ้ง Technician เมื่อถูก assign งาน/นัดหมาย */
   TECHNICIAN_NEW_JOB: 'technician.newJob',
+  /** REQ-CHT-007 — card ที่เจ้าหน้าที่ส่งจาก Chat ให้ผู้ใช้เปิด flow ผูกบัญชีรายบุคคล */
+  CHAT_LINE_CONNECT: 'chat.lineConnect',
 } as const;
 export type MessageTemplateKey = (typeof MessageTemplateKey)[keyof typeof MessageTemplateKey];
 
