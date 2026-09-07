@@ -391,14 +391,15 @@ export function orderTransitionRule(
 }
 
 /**
- * REQ-ORD-011 [MUST] — radio ของช่องค้นหาในหน้า list ใบงาน
- * "ค้นหาตาม ชื่อ / HN / เบอร์โทร พร้อม radio เลือกว่าจะค้นหาจากข้อมูลของ คนไข้ / ไรเดอร์ / Technician"
- * (HN มีเฉพาะคนไข้ — ไรเดอร์/Technician ค้นด้วยชื่อกับเบอร์โทรเท่านั้น)
+ * REQ-ORD-011/064 [MUST] — ขอบเขตของช่องค้นหาในหน้า list ใบงาน
+ * HN มีเฉพาะคนไข้; บุคลากรค้นด้วยชื่อ/เบอร์/รหัส; อุปกรณ์ค้นด้วยรหัสเครื่อง/ชื่อรุ่น
  */
 export const OrderSearchTarget = {
   PATIENT: 'PATIENT',
   RIDER: 'RIDER',
   TECHNICIAN: 'TECHNICIAN',
+  DEVICE_MANAGER: 'DEVICE_MANAGER',
+  EQUIPMENT: 'EQUIPMENT',
 } as const;
 export type OrderSearchTarget = (typeof OrderSearchTarget)[keyof typeof OrderSearchTarget];
 
