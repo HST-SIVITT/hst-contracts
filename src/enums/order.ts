@@ -16,6 +16,7 @@ export const OrderStatus = {
   NO_ACTION: 'NO_ACTION',
 } as const;
 export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus];
+export const ORDER_STATUSES = Object.values(OrderStatus) as readonly OrderStatus[];
 
 /** ค่าที่อนุญาตให้เก็บลงคอลัมน์ `orders.status` จริง (ตัด NO_ACTION ออก — ADR-003) */
 export const PERSISTED_ORDER_STATUSES = [
@@ -113,6 +114,15 @@ export const AssignmentRole = {
   DEVICE_MANAGER: 'DEVICE_MANAGER',
 } as const;
 export type AssignmentRole = (typeof AssignmentRole)[keyof typeof AssignmentRole];
+
+/** แถวคงที่ใน popup Memo ติดตามงาน (`REQ-ORD-060`) */
+export const ORDER_FOLLOW_UP_MEMO_ROLES = [
+  AssignmentRole.RIDER_OUTBOUND,
+  AssignmentRole.RIDER_INBOUND,
+  AssignmentRole.TECHNICIAN,
+  AssignmentRole.TECHNICIAN_READER,
+  AssignmentRole.DEVICE_MANAGER,
+] as const;
 
 /** สถานะระดับผู้รับงาน — DOM-02 §2.5 · REQ-DOM-021 [MUST] */
 export const AssignmentStatus = {

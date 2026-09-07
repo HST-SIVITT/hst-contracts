@@ -11,6 +11,7 @@ export const SettingGroup = {
   MAIL: 'mail',
   SECURITY: 'security',
   GENERAL: 'general',
+  ORDER_STATUS_COLORS: 'order-status-colors',
 } as const;
 export type SettingGroup = (typeof SettingGroup)[keyof typeof SettingGroup];
 
@@ -68,6 +69,13 @@ export const SettingKey = {
   MAIL_FROM: 'mail.from',
 } as const;
 export type SettingKey = (typeof SettingKey)[keyof typeof SettingKey];
+
+/** key สีสถานะใบงาน — แยก group เพื่อให้เป็นปุ่มเฉพาะในเมนูตั้งค่า (`REQ-SET-026`) */
+export function orderStatusColorSettingKey(status: string): string {
+  return `orderStatusColors.${status}`;
+}
+
+export const HEX_COLOR_PATTERN = /^#[0-9A-Fa-f]{6}$/;
 
 /**
  * อายุขั้นต่ำของ audit log ที่ปุ่มลบจะแตะได้ — REQ-LOG-005 · ADR-024 (คำตอบของ `Q-022`)

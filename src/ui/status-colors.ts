@@ -20,6 +20,11 @@ export const ORDER_STATUS_COLORS: Readonly<Record<OrderStatus, string>> = {
   NO_ACTION: '#6B7280',
 } as const;
 
+/** CSS token ที่ root layout เติมค่าจาก Settings; fallback คือสีเดิมก่อน `REQ-SET-026` */
+export function orderStatusColor(status: OrderStatus): string {
+  return `var(--status-${status.toLowerCase().replaceAll('_', '-')}, ${ORDER_STATUS_COLORS[status]})`;
+}
+
 /** สีวงกลมของสถานะผู้รับงาน — DOM-02 §2.5 · REQ-ORD-026 */
 export const ASSIGNMENT_STATUS_COLORS: Readonly<Record<AssignmentStatus, string>> = {
   NOT_ASSIGNED: '#9CA3AF',
