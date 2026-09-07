@@ -8,10 +8,13 @@ export interface ChatThreadListItemView {
   channel: LineChannel;
   displayName: string | null;
   pictureUrl: string | null;
-  lineUserId: string;
+  lineUserId: string | null;
   lineLinkStatus: LineLinkStatus;
   ownerType: OwnerType | null;
   ownerId: string | null;
+  /** ชื่อจริงจาก profile ที่ผูกแล้ว — ไม่ใช่ชื่อ LINE display name */
+  ownerNameTh: string | null;
+  ownerNameEn: string | null;
   unreadCount: number;
   lastMessageAt: string | null;
   /** ข้อความล่าสุดแบบตัวอักษร — มีค่าเฉพาะข้อความชนิด `TEXT` เท่านั้น */
