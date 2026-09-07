@@ -97,7 +97,14 @@ export const ORDER_STATUS_TRANSITIONS: Readonly<Record<OrderStatus, readonly Ord
 export const AssignmentRole = {
   RIDER_OUTBOUND: 'RIDER_OUTBOUND',
   RIDER_INBOUND: 'RIDER_INBOUND',
+  /** ช่าง Tele — บทบาทเดิมที่มีปุ่มเดินงานตาม DOM-02 §2.6 (ชื่อ enum คงเดิมเพื่อไม่ต้อง migrate ข้อมูล) */
   TECHNICIAN: 'TECHNICIAN',
+  /**
+   * `CR-011` ข้อ 4.2 · `REQ-ORD-055` — ช่างผู้อ่านผล
+   * ⚠️ **ไม่มีปุ่มเดินงานใด ๆ** — DOM-02 §2.6 ไม่มีแถวของบทบาทนี้ จึงไม่ถูกใส่ใน
+   *    `ORDER_TRANSITION_RULES` เลย (กติกาเดียวกับ `Q-053`) และไม่มีการแจ้งเตือน LINE
+   */
+  TECHNICIAN_READER: 'TECHNICIAN_READER',
 } as const;
 export type AssignmentRole = (typeof AssignmentRole)[keyof typeof AssignmentRole];
 
@@ -138,9 +145,17 @@ export const AssigneeType = {
 } as const;
 export type AssigneeType = (typeof AssigneeType)[keyof typeof AssigneeType];
 
+/** บทบาทของช่าง — ใช้แยก "ใครเป็นช่าง" ออกจากไรเดอร์โดยไม่ต้องไล่เทียบชื่อ role เอง */
+export const TECHNICIAN_ASSIGNMENT_ROLES = [
+  AssignmentRole.TECHNICIAN,
+  AssignmentRole.TECHNICIAN_READER,
+] as const;
+
 /** บทบาทในใบงาน → ชนิดของผู้รับงาน — ห้ามเดาเอง ใช้ตัวนี้ที่เดียว */
 export function assigneeTypeForRole(role: AssignmentRole): AssigneeType {
-  return role === AssignmentRole.TECHNICIAN ? AssigneeType.TECHNICIAN : AssigneeType.RIDER;
+  return (TECHNICIAN_ASSIGNMENT_ROLES as readonly AssignmentRole[]).includes(role)
+    ? AssigneeType.TECHNICIAN
+    : AssigneeType.RIDER;
 }
 
 /** กติกาของ 1 ช่องในตาราง DOM-02 §2.4 — "ใครทำได้" + "ต้องมีอะไร" */
@@ -159,6 +174,10 @@ export interface OrderTransitionRule {
   readonly noteRequired: boolean;
 }
 
+/**
+ * บทบาทที่ **มีแถวอยู่ในตารางปุ่ม DOM-02 §2.6** — ใช้เป็น `pendingAcceptRoles` ของการยกเลิก
+ * ⚠️ `TECHNICIAN_READER` ไม่อยู่ในนี้โดยตั้งใจ (`CR-011` ข้อ 4.2) — ช่างอ่านผลไม่มีปุ่มใด ๆ
+ */
 const ALL_ASSIGNMENT_ROLES: readonly AssignmentRole[] = [
   AssignmentRole.RIDER_OUTBOUND,
   AssignmentRole.RIDER_INBOUND,
@@ -274,6 +293,54 @@ export const ORDER_STATUS_JOURNEY: readonly PersistedOrderStatus[] = (() => {
 export function orderJourneyIndex(status: OrderStatus): number {
   const persisted = status === OrderStatus.NO_ACTION ? OrderStatus.APPOINTED : status;
   return ORDER_STATUS_JOURNEY.indexOf(persisted as PersistedOrderStatus);
+}
+
+/**
+ * `CR-011` ข้อ 2.3 · `REQ-ORD-052` [MUST] — โหมดของ popup "อัพเดทสถานะใบงาน"
+ *
+ * `SEQUENTIAL` (ค่าเริ่มต้น) = เดินตามตาราง DOM-02 §2.4 **บวกสถานะย้อนหลังบนเส้นทางหลัก**
+ * สำหรับกรณีกดผิด · `CUSTOM` = ข้ามไปสถานะไหนก็ได้
+ * ⚠️ ทั้งสองโหมดที่ออกนอกตาราง §2.4 ต้องมีสิทธิ์ `orders = FULL` — API บังคับซ้ำเสมอ
+ */
+export const OrderStatusUpdateMode = {
+  SEQUENTIAL: 'SEQUENTIAL',
+  CUSTOM: 'CUSTOM',
+} as const;
+export type OrderStatusUpdateMode =
+  (typeof OrderStatusUpdateMode)[keyof typeof OrderStatusUpdateMode];
+
+/**
+ * `CR-011` ข้อ 2.3.1 · `REQ-ORD-052` — สถานะ "ย้อนหลัง" ที่กดกลับได้ในโหมด `SEQUENTIAL`
+ *
+ * ขั้นก่อนหน้าบนเส้นทางหลัก เรียงจากขั้นที่ใกล้ที่สุดก่อน
+ * · `CANCELLED` ไม่อยู่บนเส้นทางหลัก จึงย้อนกลับได้ทุกขั้น (เรียงจากขั้นท้ายสุดก่อน)
+ * · ค่าที่คืนไม่ซ้ำกับสิ่งที่ `ORDER_TRANSITION_RULES` อนุญาตอยู่แล้ว (ปลายทางเดินหน้า/ยกเลิก)
+ */
+export function backwardOrderStatuses(from: PersistedOrderStatus): PersistedOrderStatus[] {
+  const index = ORDER_STATUS_JOURNEY.indexOf(from);
+  const steps =
+    index < 0 ? [...ORDER_STATUS_JOURNEY] : ORDER_STATUS_JOURNEY.slice(0, index);
+  const forward = Object.keys(ORDER_TRANSITION_RULES[from] ?? {});
+  return steps.reverse().filter((status) => status !== from && !forward.includes(status));
+}
+
+/**
+ * `CR-011` ข้อ 2.3.2 · `REQ-ORD-052` — สถานะทั้งหมดที่โหมด `CUSTOM` เลือกได้
+ * = ทุกสถานะที่เก็บลง `orders.status` ได้ ยกเว้นสถานะปัจจุบัน (เรียงตามลำดับ journey เสมอ)
+ */
+export function customOrderStatuses(from: PersistedOrderStatus): PersistedOrderStatus[] {
+  return PERSISTED_ORDER_STATUSES.filter((status) => status !== from);
+}
+
+/**
+ * `CR-011` ข้อ 2.3 — transition นี้ต้องใช้สิทธิ์ระดับ `FULL` (override) หรือไม่
+ * `false` = อยู่ในตาราง DOM-02 §2.4 อยู่แล้ว → `MAINTAIN` พอ
+ */
+export function requiresOrderStatusOverride(
+  from: PersistedOrderStatus,
+  to: PersistedOrderStatus,
+): boolean {
+  return orderTransitionRule(from, to) === undefined;
 }
 
 /** สถานะนี้เปลี่ยนต่อไม่ได้อีกแล้วหรือยัง — DOM-02 §2.4 */

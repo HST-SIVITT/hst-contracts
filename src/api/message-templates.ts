@@ -175,9 +175,19 @@ export const MESSAGE_TEMPLATE_DEFINITIONS: readonly MessageTemplateDefinition[] 
     flex: false,
     fields: [text('body', LINE_TEXT_MAX, ['orderCode', 'patientName', 'teleAppointment'])],
   },
-  {
-    key: MessageTemplateKey.CHAT_LINE_CONNECT,
-    channels: [LineChannel.PATIENT, LineChannel.RIDER, LineChannel.TECHNICIAN],
+  /**
+   * `CR-011` ข้อ 1.1 · `REQ-CHT-008` — การ์ด "เชื่อมต่อบัญชี" แยกแถวต่อประเภทผู้ใช้
+   * ช่องเหมือนกันทั้งสามแถว ต่างกันแค่ข้อความที่ตั้งไว้ (ดู `chatLineConnectTemplateKey()`)
+   */
+  ...(
+    [
+      [MessageTemplateKey.CHAT_LINE_CONNECT_PATIENT, LineChannel.PATIENT],
+      [MessageTemplateKey.CHAT_LINE_CONNECT_RIDER, LineChannel.RIDER],
+      [MessageTemplateKey.CHAT_LINE_CONNECT_TECHNICIAN, LineChannel.TECHNICIAN],
+    ] as const
+  ).map(([key, channel]) => ({
+    key,
+    channels: [channel] as readonly LineChannel[],
     flex: true,
     fields: [
       line('headerTitle', HEADING_MAX),
@@ -185,9 +195,9 @@ export const MESSAGE_TEMPLATE_DEFINITIONS: readonly MessageTemplateDefinition[] 
       line('buttonLabel', LINE_BUTTON_LABEL_MAX),
       line('footerText', 100, ['sentAt']),
       altText(),
-    ],
-  },
-] as const;
+    ] as readonly MessageTemplateFieldSpec[],
+  })),
+];
 
 export function messageTemplateDefinition(
   key: MessageTemplateKey,

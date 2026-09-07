@@ -35,10 +35,38 @@ export const MessageTemplateKey = {
   JOB_NEW_RIDER: 'job.newRider',
   /** F03 · REQ-DOM-012 — แจ้ง Technician เมื่อถูก assign งาน/นัดหมาย */
   TECHNICIAN_NEW_JOB: 'technician.newJob',
-  /** REQ-CHT-007 — card ที่เจ้าหน้าที่ส่งจาก Chat ให้ผู้ใช้เปิด flow ผูกบัญชีรายบุคคล */
-  CHAT_LINE_CONNECT: 'chat.lineConnect',
+  /**
+   * REQ-CHT-007 — card ที่เจ้าหน้าที่ส่งจาก Chat ให้ผู้ใช้เปิด flow ผูกบัญชีรายบุคคล
+   * `CR-011` ข้อ 1.1 — **แยกคนละแถวต่อประเภทผู้ใช้** เพื่อให้ตั้งข้อความของคนไข้/Technician/ไรเดอร์
+   * ต่างกันได้ (แนวเดียวกับ `appointment.tele.*` ของ `Q-048`)
+   */
+  CHAT_LINE_CONNECT_PATIENT: 'chat.lineConnect.patient',
+  CHAT_LINE_CONNECT_RIDER: 'chat.lineConnect.rider',
+  CHAT_LINE_CONNECT_TECHNICIAN: 'chat.lineConnect.technician',
 } as const;
 export type MessageTemplateKey = (typeof MessageTemplateKey)[keyof typeof MessageTemplateKey];
+
+/**
+ * `CR-011` ข้อ 1.1 · `REQ-CHT-008` — แม่แบบ "ปุ่มเชื่อมต่อ LINE" ของช่องทางนั้น
+ * ใช้ตัวนี้ตัวเดียวทั้งฝั่ง API และหน้าเว็บ **ห้ามพิมพ์ชื่อ key เองในโค้ดเรียกใช้**
+ */
+export function chatLineConnectTemplateKey(channel: LineChannel): MessageTemplateKey {
+  switch (channel) {
+    case LineChannel.RIDER:
+      return MessageTemplateKey.CHAT_LINE_CONNECT_RIDER;
+    case LineChannel.TECHNICIAN:
+      return MessageTemplateKey.CHAT_LINE_CONNECT_TECHNICIAN;
+    default:
+      return MessageTemplateKey.CHAT_LINE_CONNECT_PATIENT;
+  }
+}
+
+/** `CR-011` ข้อ 1.1 — ทุก key ของการ์ดเชื่อมต่อบัญชี (ใช้กรอง/ตรวจให้ครบทั้งสามช่องทาง) */
+export const CHAT_LINE_CONNECT_TEMPLATE_KEYS: readonly MessageTemplateKey[] = [
+  MessageTemplateKey.CHAT_LINE_CONNECT_PATIENT,
+  MessageTemplateKey.CHAT_LINE_CONNECT_RIDER,
+  MessageTemplateKey.CHAT_LINE_CONNECT_TECHNICIAN,
+];
 
 /** แปลง path param เป็น channel กลาง โดยรับตัวพิมพ์เล็ก/ใหญ่และปฏิเสธค่าอื่น */
 export function lineChannelFromPath(value: string): LineChannel | null {

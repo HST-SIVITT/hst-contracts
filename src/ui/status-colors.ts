@@ -1,5 +1,6 @@
 import { AssignmentStatus, OrderNotifyState, OrderStatus, StatusAudience } from '../enums/order';
 import { EquipmentLocationStatus } from '../enums/equipment';
+import { TechnicianJobType } from '../enums/technician';
 
 /**
  * สี hex ของสถานะงาน — DOM-02 §2.2 · REQ-UIX-005 [MUST]
@@ -44,6 +45,19 @@ export const ORDER_NOTIFY_STATE_COLORS: Readonly<Record<OrderNotifyState, string
 export const ORDER_APPOINTMENT_NOTIFY_COLORS = {
   NOT_SENT: '#9CA3AF',
   SENT: '#16A34A',
+} as const;
+
+/**
+ * `CR-011` ข้อ 3.1 · `REQ-TEC-020` — สีประจำประเภทงานของ Technician
+ *
+ * เลือกให้ไม่ชนกับสีสถานะใบงานที่อยู่ในหน้าจอเดียวกัน:
+ * เขียวมรกต = ทำได้ทุกงาน · ครามเข้ม = Tele · ม่วงอมชมพู = อ่านผล
+ * ⚠️ ห้ามคัดลอกค่าไปเขียนซ้ำ — import จากที่นี่เท่านั้น (REQ-UIX-005)
+ */
+export const TECHNICIAN_JOB_TYPE_COLORS: Readonly<Record<TechnicianJobType, string>> = {
+  ALL: '#0F766E',
+  TELE: '#1D4ED8',
+  READING: '#A21CAF',
 } as const;
 
 /** สี badge ของสถานะเครื่อง — DOM-04 §4.8 · REQ-EQP-012 */

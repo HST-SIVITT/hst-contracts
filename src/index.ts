@@ -1,6 +1,7 @@
 export * from './enums/order';
 export * from './enums/equipment';
 export * from './enums/profile';
+export * from './enums/technician';
 export * from './enums/line';
 export * from './enums/audit';
 export * from './enums/attachment';
