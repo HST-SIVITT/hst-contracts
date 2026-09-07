@@ -105,6 +105,12 @@ export const AssignmentRole = {
    *    `ORDER_TRANSITION_RULES` เลย (กติกาเดียวกับ `Q-053`) และไม่มีการแจ้งเตือน LINE
    */
   TECHNICIAN_READER: 'TECHNICIAN_READER',
+  /**
+   * `CR-012` ข้อ 4 · `REQ-DVM-003` — ผู้ดูแลอุปกรณ์ประจำใบงาน
+   * ⚠️ **ไม่มีปุ่มเดินงานใด ๆ** และไม่มีการแจ้งเตือน LINE — กติกาเดียวกับ `TECHNICIAN_READER`
+   *    จึงไม่ถูกใส่ใน `ORDER_TRANSITION_RULES` และไม่มีใน `OrderNotificationRecipient`
+   */
+  DEVICE_MANAGER: 'DEVICE_MANAGER',
 } as const;
 export type AssignmentRole = (typeof AssignmentRole)[keyof typeof AssignmentRole];
 
@@ -142,6 +148,8 @@ export type ActorType = (typeof ActorType)[keyof typeof ActorType];
 export const AssigneeType = {
   RIDER: 'RIDER',
   TECHNICIAN: 'TECHNICIAN',
+  /** `CR-012` · `REQ-DVM-003` — ผู้ดูแลอุปกรณ์ (คนละตารางกับไรเดอร์/ช่าง) */
+  DEVICE_MANAGER: 'DEVICE_MANAGER',
 } as const;
 export type AssigneeType = (typeof AssigneeType)[keyof typeof AssigneeType];
 
@@ -153,6 +161,7 @@ export const TECHNICIAN_ASSIGNMENT_ROLES = [
 
 /** บทบาทในใบงาน → ชนิดของผู้รับงาน — ห้ามเดาเอง ใช้ตัวนี้ที่เดียว */
 export function assigneeTypeForRole(role: AssignmentRole): AssigneeType {
+  if (role === AssignmentRole.DEVICE_MANAGER) return AssigneeType.DEVICE_MANAGER;
   return (TECHNICIAN_ASSIGNMENT_ROLES as readonly AssignmentRole[]).includes(role)
     ? AssigneeType.TECHNICIAN
     : AssigneeType.RIDER;
@@ -414,6 +423,8 @@ export const OrderPickerTarget = {
   RIDER: 'RIDER',
   TECHNICIAN: 'TECHNICIAN',
   EQUIPMENT: 'EQUIPMENT',
+  /** `CR-012` ข้อ 4 · `REQ-DVM-003` */
+  DEVICE_MANAGER: 'DEVICE_MANAGER',
 } as const;
 export type OrderPickerTarget = (typeof OrderPickerTarget)[keyof typeof OrderPickerTarget];
 
@@ -457,7 +468,7 @@ export const RIDER_NOTIFICATION_RECIPIENTS = [
  *
  * ⚠️ `PENDING_ACCEPT` ถูกแตกเป็นสองสถานะ: ยังไม่ได้ส่งการ์ด = `NOT_NOTIFIED` (เทา)
  *    · ส่งแล้วรอตอบรับ = `NOTIFIED` (น้ำเงิน) — "เปลี่ยนคนใหม่แล้วกลับไปเริ่มที่เทา" จึงเป็นจริงเสมอ
- *    เพราะการ์ดที่เคยส่งผูกกับ `line_user_id` ของคนเดิม ไม่ใช่ของช่องนั้น (`Q-060`)
+ *    เพราะการ์ดที่เคยส่งผูกกับ `line_user_id` ของคนเดิม ไม่ใช่ของช่องนั้น (`Q-065`)
  */
 export const OrderNotifyState = {
   /** ยังไม่มีคนในช่อง หรือมีคนแล้วแต่ยังไม่เคยส่งการ์ดให้ **คนปัจจุบัน** */

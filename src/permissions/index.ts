@@ -10,6 +10,8 @@ export const PermissionSubject = {
   PATIENTS: 'patients',
   TECHNICIANS: 'technicians',
   RIDERS: 'riders',
+  /** `CR-012` · `REQ-DVM-001` — ผู้ดูแลอุปกรณ์ (Device Manager) · เมนูใต้ "ไรเดอร์" */
+  DEVICE_MANAGERS: 'device_managers',
   EQUIPMENTS: 'equipments',
   CHAT: 'chat',
   SYSTEM_USERS: 'system_users',
