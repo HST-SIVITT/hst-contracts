@@ -16,4 +16,5 @@ export * from './api/line';
 export * from './api/message-templates';
 export * from './api/chat';
 export * from './api/pickup-locations';
+export * from './api/time-slots';
 export * from './ui/status-colors';
