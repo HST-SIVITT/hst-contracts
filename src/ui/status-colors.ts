@@ -46,6 +46,29 @@ export const ORDER_NOTIFY_STATE_COLORS: Readonly<Record<OrderNotifyState, string
   CANCELLED: '#DC2626',
 } as const;
 
+/**
+ * `CR-020` ข้อ 2 · ข้อ 4 — แถบติดตามงานของช่องผู้รับงานบนหน้า list ใบงาน
+ *
+ * แถบหนึ่งช่อง = **กล่องสี่เหลี่ยม 1 จุด (มีคนรับผิดชอบหรือยัง) + วงกลม 5 จุด (ความคืบหน้า)**
+ *
+ * ⚠️ `UNCHECKED` **ต้องจางกว่า** `ORDER_NOTIFY_STATE_COLORS.NOT_NOTIFIED` (`#9CA3AF`)
+ *    เพราะหน้า list มี 5 คอลัมน์ × 5 จุด = 25 จุดต่อแถว เทาเข้มทั้งหมดแล้วอ่านไม่ไหว (`CR-020` ข้อ 2/5)
+ *    ค่าที่เลือกคือ `#E5E7EB` (เทาอ่อนระดับเส้นขอบ) — จุดที่ "ยังไม่ติ๊ก" ต้องถอยไปเป็นพื้นหลัง
+ *    ให้จุดที่ติ๊กแล้วเด่นขึ้นมาเอง
+ * ⚠️ สีที่เหลืออ้างค่าเดิมทั้งหมด ห้ามเขียน hex ซ้ำ — น้ำเงิน/เขียว/แดง ต้องเป็นสีเดียวกับ
+ *    จุดผู้รับงานเดิม (`ORDER_NOTIFY_STATE_COLORS`) ไม่งั้นผู้ใช้ต้องจำสองชุด
+ */
+export const ORDER_FOLLOW_UP_MEMO_DOT_COLORS = {
+  /** ยังไม่ติ๊ก · ยังไม่มีคนรับผิดชอบ — เทาจาง ๆ ให้ถอยไปเป็นพื้นหลัง */
+  UNCHECKED: '#E5E7EB',
+  /** ติ๊กแล้ว */
+  CHECKED: ORDER_NOTIFY_STATE_COLORS.ACCEPTED,
+  /** ติ๊ก "ยกเลิก" = ทั้งแถบเป็นแดง */
+  CANCELLED: ORDER_NOTIFY_STATE_COLORS.CANCELLED,
+  /** `CR-020` ข้อ 4.1 — ใบงานนี้เลือกคนของบทบาทนี้ไว้แล้ว */
+  ASSIGNED: ORDER_NOTIFY_STATE_COLORS.NOTIFIED,
+} as const;
+
 /** `REQ-ORD-049` — ส่งการ์ดนัดหมายให้คนไข้แล้วหรือยัง (แสดงคู่กับ badge สถานะงาน) */
 export const ORDER_APPOINTMENT_NOTIFY_COLORS = {
   NOT_SENT: '#9CA3AF',
