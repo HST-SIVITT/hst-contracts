@@ -11,6 +11,7 @@ export const SettingGroup = {
   MAIL: 'mail',
   SECURITY: 'security',
   GENERAL: 'general',
+  CONSULT: 'consult',
   ORDER_STATUS_COLORS: 'order-status-colors',
 } as const;
 export type SettingGroup = (typeof SettingGroup)[keyof typeof SettingGroup];
@@ -50,6 +51,10 @@ export const SettingKey = {
   GENERAL_DEFAULT_PER_PAGE: 'general.defaultPerPage',
   /** จำนวนไฟล์สูงสุดต่อการอัปเดตสถานะ 1 ครั้ง — REQ-ORD-030 · คำตอบ `Q-042` ข้อ 3 (T-095) */
   GENERAL_ORDER_STATUS_ATTACHMENT_MAX_FILES: 'general.orderStatusAttachmentMaxFiles',
+  /** base URL ของหน้าห้องประชุม; ว่าง = ใช้ origin จาก LIFF_BASE_URL (`REQ-SET-027`) */
+  CONSULT_BASE_URL: 'consult.baseUrl',
+  CONSULT_PATIENT_PATH_TEMPLATE: 'consult.patientPathTemplate',
+  CONSULT_TECHNICIAN_PATH_TEMPLATE: 'consult.technicianPathTemplate',
   GOOGLE_MAPS_API_KEY: 'google.mapsApiKey',
   S3_ENDPOINT: 's3.endpoint',
   S3_REGION: 's3.region',
@@ -69,6 +74,9 @@ export const SettingKey = {
   MAIL_FROM: 'mail.from',
 } as const;
 export type SettingKey = (typeof SettingKey)[keyof typeof SettingKey];
+
+export const CONSULT_PATIENT_PATH_TEMPLATE_DEFAULT = '/room/jitsi/HST_{orderCode}/user';
+export const CONSULT_TECHNICIAN_PATH_TEMPLATE_DEFAULT = '/room/jitsi/HST_{orderCode}/moderator';
 
 /** key สีสถานะใบงาน — แยก group เพื่อให้เป็นปุ่มเฉพาะในเมนูตั้งค่า (`REQ-SET-026`) */
 export function orderStatusColorSettingKey(status: string): string {
