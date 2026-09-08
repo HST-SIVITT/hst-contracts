@@ -177,13 +177,15 @@ export const MESSAGE_TEMPLATE_DEFINITIONS: readonly MessageTemplateDefinition[] 
   },
   /**
    * `CR-011` ข้อ 1.1 · `REQ-CHT-008` — การ์ด "เชื่อมต่อบัญชี" แยกแถวต่อประเภทผู้ใช้
-   * ช่องเหมือนกันทั้งสามแถว ต่างกันแค่ข้อความที่ตั้งไว้ (ดู `chatLineConnectTemplateKey()`)
+   * ช่องเหมือนกันทุกแถว ต่างกันแค่ข้อความที่ตั้งไว้ (ดู `chatLineConnectTemplateKey()`)
+   * `CR-022` ข้อ 5 · `REQ-DVM-007` — เพิ่มแถวของ Device Manager (ADR-052)
    */
   ...(
     [
       [MessageTemplateKey.CHAT_LINE_CONNECT_PATIENT, LineChannel.PATIENT],
       [MessageTemplateKey.CHAT_LINE_CONNECT_RIDER, LineChannel.RIDER],
       [MessageTemplateKey.CHAT_LINE_CONNECT_TECHNICIAN, LineChannel.TECHNICIAN],
+      [MessageTemplateKey.CHAT_LINE_CONNECT_DEVICE_MANAGER, LineChannel.DEVICE_MANAGER],
     ] as const
   ).map(([key, channel]) => ({
     key,

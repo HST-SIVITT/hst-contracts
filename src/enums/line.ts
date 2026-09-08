@@ -1,11 +1,17 @@
 /**
- * LINE OA 3 channel — TEC-05 · แยกขาดจากกัน (credential / LIFF ID / rich menu คนละชุด)
+ * LINE OA 4 channel — TEC-05 · แยกขาดจากกัน (credential / LIFF ID / rich menu คนละชุด)
  * ค่าใน enum นี้ใช้เป็น path param ของ webhook ด้วย: /api/v1/webhooks/line/:channel (ตัวพิมพ์เล็ก)
  */
 export const LineChannel = {
   PATIENT: 'PATIENT',
   RIDER: 'RIDER',
   TECHNICIAN: 'TECHNICIAN',
+  /**
+   * `CR-022` ข้อ 5 · `REQ-DVM-007` — OA ของ Device Manager
+   * ⚠️ กลับคำตอบเดิมของ `Q-065` ("บทบาทนี้ไม่มี LINE OA") — ดู ADR-052
+   *    path ของ webhook/LIFF เป็น `device_manager` (ตัวพิมพ์เล็กของค่านี้)
+   */
+  DEVICE_MANAGER: 'DEVICE_MANAGER',
 } as const;
 export type LineChannel = (typeof LineChannel)[keyof typeof LineChannel];
 
@@ -13,6 +19,7 @@ export const LINE_CHANNELS = [
   LineChannel.PATIENT,
   LineChannel.RIDER,
   LineChannel.TECHNICIAN,
+  LineChannel.DEVICE_MANAGER,
 ] as const;
 
 /** key ข้อความอัตโนมัติที่ implement แล้ว — เพิ่มตาม F03 ทีละงาน ห้ามพิมพ์ string ซ้ำใน service */
@@ -43,6 +50,8 @@ export const MessageTemplateKey = {
   CHAT_LINE_CONNECT_PATIENT: 'chat.lineConnect.patient',
   CHAT_LINE_CONNECT_RIDER: 'chat.lineConnect.rider',
   CHAT_LINE_CONNECT_TECHNICIAN: 'chat.lineConnect.technician',
+  /** `CR-022` ข้อ 5 · `REQ-DVM-007` — การ์ดเชื่อมต่อบัญชีของ Device Manager */
+  CHAT_LINE_CONNECT_DEVICE_MANAGER: 'chat.lineConnect.deviceManager',
 } as const;
 export type MessageTemplateKey = (typeof MessageTemplateKey)[keyof typeof MessageTemplateKey];
 
@@ -56,6 +65,8 @@ export function chatLineConnectTemplateKey(channel: LineChannel): MessageTemplat
       return MessageTemplateKey.CHAT_LINE_CONNECT_RIDER;
     case LineChannel.TECHNICIAN:
       return MessageTemplateKey.CHAT_LINE_CONNECT_TECHNICIAN;
+    case LineChannel.DEVICE_MANAGER:
+      return MessageTemplateKey.CHAT_LINE_CONNECT_DEVICE_MANAGER;
     default:
       return MessageTemplateKey.CHAT_LINE_CONNECT_PATIENT;
   }
@@ -66,6 +77,7 @@ export const CHAT_LINE_CONNECT_TEMPLATE_KEYS: readonly MessageTemplateKey[] = [
   MessageTemplateKey.CHAT_LINE_CONNECT_PATIENT,
   MessageTemplateKey.CHAT_LINE_CONNECT_RIDER,
   MessageTemplateKey.CHAT_LINE_CONNECT_TECHNICIAN,
+  MessageTemplateKey.CHAT_LINE_CONNECT_DEVICE_MANAGER,
 ];
 
 /** แปลง path param เป็น channel กลาง โดยรับตัวพิมพ์เล็ก/ใหญ่และปฏิเสธค่าอื่น */
@@ -113,6 +125,8 @@ export const LINE_CHANNEL_LIFF_PAGES: Readonly<Record<LineChannel, readonly Liff
   [LineChannel.PATIENT]: [LiffPage.PROFILE, LiffPage.LINK],
   [LineChannel.RIDER]: [LiffPage.PROFILE, LiffPage.JOBS, LiffPage.LINK],
   [LineChannel.TECHNICIAN]: [LiffPage.PROFILE, LiffPage.JOBS, LiffPage.LINK],
+  // `REQ-DVM-007` — ชุดหน้าเดียวกับไรเดอร์: ดูโปรไฟล์/สลับสถานะพร้อมรับงาน + รายการงานของตัวเอง
+  [LineChannel.DEVICE_MANAGER]: [LiffPage.PROFILE, LiffPage.JOBS, LiffPage.LINK],
 };
 
 /**
@@ -124,6 +138,7 @@ export const LINE_CHANNEL_RICH_MENU: Readonly<Record<LineChannel, readonly LiffP
   [LineChannel.PATIENT]: [LiffPage.PROFILE],
   [LineChannel.RIDER]: [LiffPage.PROFILE, LiffPage.JOBS],
   [LineChannel.TECHNICIAN]: [LiffPage.PROFILE, LiffPage.JOBS],
+  [LineChannel.DEVICE_MANAGER]: [LiffPage.PROFILE, LiffPage.JOBS],
 };
 
 /** URL เต็มของหน้า LIFF — คืน `null` เมื่อยังไม่ได้กรอก LIFF ID (หน้าเว็บเอาไปแสดงข้อความ "ยังกรอกไม่ครบ") */

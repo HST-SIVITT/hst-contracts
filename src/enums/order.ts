@@ -410,6 +410,21 @@ export const ORDER_SEARCH_TARGETS = Object.values(
 export const DEFAULT_ORDER_SEARCH_TARGET: OrderSearchTarget = OrderSearchTarget.PATIENT;
 
 /**
+ * `CR-022` ข้อ 3 · `REQ-ORD-071` — วิธีค้นในหน้า list ใบงาน
+ * `SELECT` เลือกจาก dropdown (ค่าเริ่มต้น · แม่นกว่าและยิงค้นทันทีที่เลือก)
+ * `TEXT` พิมพ์คำค้นเอง (พฤติกรรมเดิมก่อน `CR-022`)
+ */
+export const OrderSearchMode = {
+  SELECT: 'SELECT',
+  TEXT: 'TEXT',
+} as const;
+export type OrderSearchMode = (typeof OrderSearchMode)[keyof typeof OrderSearchMode];
+
+export const ORDER_SEARCH_MODES = Object.values(OrderSearchMode) as readonly OrderSearchMode[];
+
+export const DEFAULT_ORDER_SEARCH_MODE: OrderSearchMode = OrderSearchMode.SELECT;
+
+/**
  * REQ-ORD-017 [MUST] — เรียงลำดับได้ 4 แบบเท่านั้น (ห้ามเปิดเป็นช่อง sort อิสระ)
  * ชื่อคอลัมน์จริงอยู่ฝั่ง API — ที่นี่เก็บแค่ "ตัวเลือกที่ผู้ใช้เลือกได้" เพื่อให้ UI กับ API ตรงกัน
  */

@@ -317,3 +317,61 @@ export interface LiffTechnicianJobDetailView {
   allowedTransitions: PersistedOrderStatus[];
   patient: LiffOrderPatientView | null;
 }
+
+/**
+ * `CR-022` ข้อ 5 · `REQ-DVM-008` — งาน 1 ใบในหน้า LIFF ของ Device Manager
+ * บทบาทนี้มีแถวเดียวต่อใบงาน จึงไม่ต้องมี `role` เหมือนฝั่งไรเดอร์
+ */
+export interface LiffDeviceManagerJobView {
+  id: string;
+  code: string;
+  assignmentStatus: AssignmentStatus;
+  status: OrderStatus;
+  teleAppointmentAt: string;
+}
+
+/** `REQ-DVM-008` — โปรไฟล์ Device Manager ที่ได้จาก LINE owner mapping เท่านั้น */
+export interface LiffDeviceManagerProfileView {
+  id: string;
+  displayName: string | null;
+  pictureUrl: string | null;
+  nameTh: string;
+  nameEn: string;
+  staffCode: string | null;
+  phone: string;
+  accountStatus: AccountStatus;
+  availability: Availability;
+  /** `REQ-DVM-005` — เพดานงานอ่านผลต่อวันไทยของคนนี้ (แสดงคู่กับจำนวนงานวันนี้) */
+  readingJobLimitPerDay: number;
+  todayJobs: LiffDeviceManagerJobView[];
+}
+
+export interface LiffDeviceManagerJobsView {
+  items: LiffDeviceManagerJobView[];
+  workload: {
+    completedJobCount: number;
+    inProgressJobCount: number;
+    cancelledJobCount: number;
+    totalJobCount: number;
+  };
+}
+
+/**
+ * `REQ-DVM-008` — รายละเอียดงาน 1 ใบของ Device Manager
+ *
+ * ⚠️ **ไม่มี `allowedTransitions` และไม่มี `maxAttachmentFiles`** โดยตั้งใจ — บทบาทนี้
+ *    ไม่มีแถวใน `ORDER_TRANSITION_RULES` (กติกาเดียวกับ `TECHNICIAN_READER`) จึงไม่มีปุ่มเดินงานใด ๆ
+ *    หน้านี้เป็น **อ่านอย่างเดียว** ห้ามเพิ่มปุ่มโดยไม่แก้ state machine กลางก่อน (ADR-035)
+ * ⚠️ ข้อมูลคนไข้ถูกตัดทิ้งทั้งก้อนเมื่อใบงานจบแล้ว เหมือนฝั่งไรเดอร์ (`REQ-SEC-012`)
+ */
+export interface LiffDeviceManagerJobDetailView {
+  id: string;
+  code: string;
+  status: PersistedOrderStatus;
+  displayStatus: OrderStatus;
+  teleAppointmentAt: string;
+  assignments: LiffOrderAssignmentView[];
+  patient: LiffOrderPatientView | null;
+  /** อุปกรณ์ที่ผูกกับใบงาน — เป็นเหตุผลหลักที่บทบาทนี้ต้องเปิดดูใบงาน */
+  equipment: { code: string; modelName: string } | null;
+}

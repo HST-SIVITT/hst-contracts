@@ -47,5 +47,7 @@ export const OwnerType = {
   PATIENT: 'PATIENT',
   RIDER: 'RIDER',
   TECHNICIAN: 'TECHNICIAN',
+  /** `CR-022` ข้อ 5 · `REQ-DVM-007` — Device Manager ผูกบัญชี LINE ได้แล้ว (ADR-052) */
+  DEVICE_MANAGER: 'DEVICE_MANAGER',
 } as const;
 export type OwnerType = (typeof OwnerType)[keyof typeof OwnerType];

@@ -1,4 +1,4 @@
-import { LiffPage } from '../enums/line';
+import { LiffPage, type LineChannel } from '../enums/line';
 
 /**
  * กลุ่มค่าตั้งค่า — FT-11 · TEC-03 §3.5 (`GET/PATCH /settings/:group`)
@@ -132,7 +132,7 @@ export function clampSettingNumber(key: string, value: number, fallback: number)
 
 /** key ของ LINE ต่อ channel — เช่น lineSettingKey('PATIENT', 'channelSecret') → 'line.patient.channelSecret' */
 export function lineSettingKey(
-  channel: 'PATIENT' | 'RIDER' | 'TECHNICIAN',
+  channel: LineChannel,
   field: LineSettingField,
 ): string {
   return `line.${channel.toLowerCase()}.${field}`;
@@ -157,7 +157,7 @@ export type LineSettingField = (typeof LINE_SETTING_FIELDS)[number];
  * (`REQ-SET-002` · migration `0015` ย้ายค่า `line.<ch>.liffId` เดิมมาเป็น `liff.profile` ให้แล้ว)
  */
 export function lineLiffSettingKey(
-  channel: 'PATIENT' | 'RIDER' | 'TECHNICIAN',
+  channel: LineChannel,
   page: LiffPage,
 ): string {
   return `line.${channel.toLowerCase()}.liff.${page}`;
@@ -165,7 +165,7 @@ export function lineLiffSettingKey(
 
 /** อ่านชื่อหน้าจาก key ของ LIFF — คืน `null` ถ้า key นั้นไม่ใช่ค่า LIFF */
 export function liffPageOfSettingKey(key: string): LiffPage | null {
-  const match = /^line\.(?:patient|rider|technician)\.liff\.(.+)$/.exec(key);
+  const match = /^line\.(?:patient|rider|technician|device_manager)\.liff\.(.+)$/.exec(key);
   const page = match?.[1];
   return page && (Object.values(LiffPage) as string[]).includes(page) ? (page as LiffPage) : null;
 }
