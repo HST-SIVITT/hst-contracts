@@ -18,6 +18,8 @@ export const PermissionSubject = {
   USER_GROUPS: 'user_groups',
   AUDIT_LOGS: 'audit_logs',
   SETTINGS: 'settings',
+  /** CR-027 · Q-075: READ_ONLY view/print; rates remain settings MAINTAIN. */
+  REPORTS: 'reports',
 } as const;
 export type PermissionSubject = (typeof PermissionSubject)[keyof typeof PermissionSubject];
 

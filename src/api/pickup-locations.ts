@@ -15,6 +15,8 @@ export interface PickupLocationView {
   address: string;
   phone: string;
   note: string | null;
+  lat: string | null;
+  lng: string | null;
   /** จำนวนใบงานที่อ้างจุดรับนี้ — ใช้ทั้งแสดงในตารางและอธิบายเหตุผลตอนลบไม่ได้ */
   orderCount: number;
   createdAt: string | Date;
@@ -27,6 +29,9 @@ export interface PickupLocationOption {
   name: string;
   address: string;
   phone: string;
+  /** Optional during rolling deployment; missing coordinates are never treated as zero. */
+  lat?: string | null;
+  lng?: string | null;
 }
 
 export const PICKUP_LOCATION_NAME_MAX = 150;

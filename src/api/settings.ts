@@ -49,6 +49,8 @@ export const SettingKey = {
   SECURITY_LINE_LINK_TOKEN_TTL_HOURS: 'security.lineLinkTokenTtlHours',
   GENERAL_PAGINATION_OPTIONS: 'general.paginationOptions',
   GENERAL_DEFAULT_PER_PAGE: 'general.defaultPerPage',
+  /** REQ-SET-031: navigation screen loading, default enabled. */
+  GENERAL_NAVIGATION_LOADING_ENABLED: 'general.navigationLoadingEnabled',
   /** จำนวนไฟล์สูงสุดต่อการอัปเดตสถานะ 1 ครั้ง — REQ-ORD-030 · คำตอบ `Q-042` ข้อ 3 (T-095) */
   GENERAL_ORDER_STATUS_ATTACHMENT_MAX_FILES: 'general.orderStatusAttachmentMaxFiles',
   /** base URL ของหน้าห้องประชุม; ว่าง = ใช้ origin จาก LIFF_BASE_URL (`REQ-SET-027`) */

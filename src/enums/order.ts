@@ -400,6 +400,8 @@ export const OrderSearchTarget = {
   TECHNICIAN: 'TECHNICIAN',
   DEVICE_MANAGER: 'DEVICE_MANAGER',
   EQUIPMENT: 'EQUIPMENT',
+  /** REQ-ORD-078: text search only. */
+  ORDER_CODE: 'ORDER_CODE',
 } as const;
 export type OrderSearchTarget = (typeof OrderSearchTarget)[keyof typeof OrderSearchTarget];
 
