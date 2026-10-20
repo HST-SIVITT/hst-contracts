@@ -1,4 +1,5 @@
 import { LiffPage, type LineChannel } from '../enums/line';
+import { TeleUserType, telePath } from './videocon';
 
 /**
  * กลุ่มค่าตั้งค่า — FT-11 · TEC-03 §3.5 (`GET/PATCH /settings/:group`)
@@ -64,7 +65,7 @@ export const SettingKey = {
   CONSULT_PATIENT_PATH_TEMPLATE: 'consult.patientPathTemplate',
   CONSULT_TECHNICIAN_PATH_TEMPLATE: 'consult.technicianPathTemplate',
   /**
-   * `REQ-SET-032` — 5 ค่าที่หน้าต้อนรับของ hst-videocon แสดง เรียงตามลำดับบนหน้าจอ
+   * `REQ-SET-032` · `REQ-SET-035` — 7 ค่าที่หน้า `/tele` แสดง เรียงตามลำดับบนหน้าจอ
    * ⚠️ 2 ค่าที่เป็นรูปเก็บเป็น JSON `VideoconBrandingImage` (ไม่ใช่ URL)
    *    เพราะต้องรู้ `driver` ด้วยว่าไฟล์อยู่บน S3 หรือดิสก์ (โหมด mock ตอน dev — ADR-027)
    */
@@ -72,6 +73,10 @@ export const SettingKey = {
   VIDEOCON_SYSTEM_NAME: 'videocon.systemName',
   VIDEOCON_ILLUSTRATION: 'videocon.illustration',
   VIDEOCON_DESCRIPTION: 'videocon.description',
+  /** `REQ-SET-035` — ลิงก์ปุ่ม "ประกาศความเป็นส่วนตัวของสถานพยาบาล" · ว่าง = ใช้ของเดิมที่มากับระบบ */
+  VIDEOCON_FACILITY_PRIVACY_URL: 'videocon.facilityPrivacyUrl',
+  /** `REQ-SET-035` — ลิงก์ปุ่ม "ประกาศความเป็นส่วนตัว" · ว่าง = ใช้ของเดิมที่มากับระบบ */
+  VIDEOCON_PRIVACY_URL: 'videocon.privacyUrl',
   VIDEOCON_COPYRIGHT: 'videocon.copyright',
   GOOGLE_MAPS_API_KEY: 'google.mapsApiKey',
   S3_ENDPOINT: 's3.endpoint',
@@ -93,8 +98,26 @@ export const SettingKey = {
 } as const;
 export type SettingKey = (typeof SettingKey)[keyof typeof SettingKey];
 
-export const CONSULT_PATIENT_PATH_TEMPLATE_DEFAULT = '/room/jitsi/HST_{orderCode}/user';
-export const CONSULT_TECHNICIAN_PATH_TEMPLATE_DEFAULT = '/room/jitsi/HST_{orderCode}/moderator';
+/**
+ * ค่าเริ่มต้นของ path template — `REQ-SET-027` · แก้เป็น `/tele/...` ใน `CR-033` (`REQ-SET-036`)
+ *
+ * ประกอบจาก `telePath()` เพื่อให้ "ที่อยู่ที่ระบบส่งให้คนไข้" กับ "route ที่ hst-web มีจริง"
+ * เพี้ยนจากกันไม่ได้ · `HST_` เป็นคำนำหน้าชื่อห้องของ Jitsi ไม่ใช่ส่วนของ path (คงไว้ตามเดิม)
+ *
+ * ⚠️ ค่าเดิม `/room/jitsi/HST_{orderCode}/user` ถูก `INSERT` ลงตาราง `settings` ไว้แล้วตั้งแต่
+ *    migration `0047` → **เปลี่ยนค่าคงที่ตัวนี้เพียงที่เดียวไม่พอ** ต้องมี migration ที่ `UPDATE`
+ *    แถวที่ยังเป็นค่าเดิมด้วย (`0053`) และลิงก์เก่าที่ snapshot ลงใบงานไปแล้วต้องพึ่ง redirect
+ *    `/room/jitsi/*` → `/tele/*` ของ hst-web
+ */
+export const CONSULT_PATIENT_PATH_TEMPLATE_DEFAULT = telePath('HST_{orderCode}', TeleUserType.PATIENT);
+export const CONSULT_TECHNICIAN_PATH_TEMPLATE_DEFAULT = telePath(
+  'HST_{orderCode}',
+  TeleUserType.TECHNICIAN,
+);
+
+/** ค่าเดิมก่อน `CR-033` — migration `0053` ใช้เทียบว่าไซต์ "ยังไม่เคยแก้เอง" */
+export const CONSULT_PATIENT_PATH_TEMPLATE_LEGACY = '/room/jitsi/HST_{orderCode}/user';
+export const CONSULT_TECHNICIAN_PATH_TEMPLATE_LEGACY = '/room/jitsi/HST_{orderCode}/moderator';
 
 /** key สีสถานะใบงาน — แยก group เพื่อให้เป็นปุ่มเฉพาะในเมนูตั้งค่า (`REQ-SET-026`) */
 export function orderStatusColorSettingKey(status: string): string {
