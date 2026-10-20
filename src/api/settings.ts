@@ -12,6 +12,12 @@ export const SettingGroup = {
   SECURITY: 'security',
   GENERAL: 'general',
   CONSULT: 'consult',
+  /**
+   * หน้าต้อนรับของห้องประชุมทางไกล (hst-videocon) — `REQ-SET-032`
+   * แยกจาก `CONSULT` (ที่เก็บ URL/path template) เพราะเป็น "หน้าตา" ไม่ใช่ "ปลายทาง"
+   * และมี 2 ค่าที่เป็นไฟล์รูป ซึ่งฟอร์มกลางของหมวดอื่นเรนเดอร์เป็นช่องข้อความไม่ได้
+   */
+  VIDEOCON: 'videocon',
   ORDER_STATUS_COLORS: 'order-status-colors',
 } as const;
 export type SettingGroup = (typeof SettingGroup)[keyof typeof SettingGroup];
@@ -57,6 +63,16 @@ export const SettingKey = {
   CONSULT_BASE_URL: 'consult.baseUrl',
   CONSULT_PATIENT_PATH_TEMPLATE: 'consult.patientPathTemplate',
   CONSULT_TECHNICIAN_PATH_TEMPLATE: 'consult.technicianPathTemplate',
+  /**
+   * `REQ-SET-032` — 5 ค่าที่หน้าต้อนรับของ hst-videocon แสดง เรียงตามลำดับบนหน้าจอ
+   * ⚠️ 2 ค่าที่เป็นรูปเก็บเป็น JSON `VideoconBrandingImage` (ไม่ใช่ URL)
+   *    เพราะต้องรู้ `driver` ด้วยว่าไฟล์อยู่บน S3 หรือดิสก์ (โหมด mock ตอน dev — ADR-027)
+   */
+  VIDEOCON_LOGO: 'videocon.logo',
+  VIDEOCON_SYSTEM_NAME: 'videocon.systemName',
+  VIDEOCON_ILLUSTRATION: 'videocon.illustration',
+  VIDEOCON_DESCRIPTION: 'videocon.description',
+  VIDEOCON_COPYRIGHT: 'videocon.copyright',
   GOOGLE_MAPS_API_KEY: 'google.mapsApiKey',
   S3_ENDPOINT: 's3.endpoint',
   S3_REGION: 's3.region',

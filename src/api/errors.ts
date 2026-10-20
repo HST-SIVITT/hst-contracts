@@ -64,6 +64,16 @@ export const ErrorCode = {
   FILE_TYPE_NOT_ALLOWED: 'FILE_TYPE_NOT_ALLOWED',
   /** รหัสประจำตัวไรเดอร์/Technician ซ้ำกับคนอื่น — REQ-ORD-013 · Q-038 (T-094) */
   STAFF_CODE_DUPLICATE: 'STAFF_CODE_DUPLICATE',
+  /** โดเมนที่เรียกเข้ามาไม่ได้ผูกกับ site ใดเลย — `REQ-SITE-010` */
+  SITE_NOT_RESOLVED: 'SITE_NOT_RESOLVED',
+  /** site ถูกระงับโดย Center Console — `REQ-SITE-011` */
+  SITE_SUSPENDED: 'SITE_SUSPENDED',
+  /** token ออกให้ site หนึ่งแต่ถูกใช้กับโดเมนของอีก site — `REQ-SITE-012` (กันปลอม header) */
+  SITE_MISMATCH: 'SITE_MISMATCH',
+  /** รหัส site ซ้ำกับที่มีอยู่แล้ว — `REQ-CTR-003` */
+  SITE_CODE_TAKEN: 'SITE_CODE_TAKEN',
+  /** โดเมนนี้ถูกผูกกับ site อื่นไปแล้ว — `REQ-CTR-003` */
+  SITE_DOMAIN_TAKEN: 'SITE_DOMAIN_TAKEN',
   /** ใช้กับ validation error ทั่วไปที่ไม่มี code เฉพาะ */
   VALIDATION_FAILED: 'VALIDATION_FAILED',
   NOT_FOUND: 'NOT_FOUND',

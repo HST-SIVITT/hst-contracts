@@ -48,6 +48,19 @@ export interface ChatThreadView extends ChatThreadListItemView {
   messages: ChatMessageView[];
 }
 
+/**
+ * payload ของ `GET /chat/updates` (SSE) — `REQ-CHT-010` · `REQ-CHT-011`
+ *
+ * - `revision` เปลี่ยนเมื่อมีข้อความใหม่ **ในช่องทางที่สตรีมนี้กรองไว้** → หน้าเว็บ refresh
+ * - `unread` เป็นยอดค้างอ่าน **ของทุกช่องทาง** ไม่ใช่แค่ช่องทางที่กรอง เพราะผู้ใช้ที่เปิดแท็บ
+ *   "คนไข้" อยู่ ต้องรู้ด้วยว่ามีข้อความใหม่เข้าช่องทาง "ไรเดอร์" (`REQ-CHT-011`)
+ *   ช่องทางที่ยังไม่มีคู่สนทนาเลยจะไม่มีคีย์ — ผู้อ่านต้องถือว่าเป็น 0
+ */
+export interface ChatUpdateEvent {
+  revision: string;
+  unread: Partial<Record<LineChannel, number>>;
+}
+
 /** ตัวเลือก profile ที่ยังไม่ผูก LINE และอยู่ใน channel เดียวกับ thread (`REQ-CHT-007`) */
 export interface ChatLineLinkCandidateView {
   id: string;
