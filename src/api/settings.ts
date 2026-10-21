@@ -20,6 +20,12 @@ export const SettingGroup = {
    */
   VIDEOCON: 'videocon',
   ORDER_STATUS_COLORS: 'order-status-colors',
+  /**
+   * รูปแบบรหัสใบงาน — `CR-035` · `REQ-SET-037`..`REQ-SET-039`
+   * มีหน้าของตัวเองที่ `settings/order-code` (ต้องแสดงเลขวิ่งปัจจุบัน + ตัวอย่างรหัสสด ๆ
+   * ซึ่งฟอร์มกลางของหมวดอื่นเรนเดอร์ไม่ได้ · แม่แบบเดียวกับ `VIDEOCON`)
+   */
+  ORDER_CODE: 'order-code',
 } as const;
 export type SettingGroup = (typeof SettingGroup)[keyof typeof SettingGroup];
 
@@ -89,6 +95,13 @@ export const SettingKey = {
   S3_FORCE_PATH_STYLE: 's3.forcePathStyle',
   /** ขนาดไฟล์แนบสูงสุดต่อไฟล์ (MB) — REQ-PAT-021 · ห้าม hardcode (REQ-SET-001) */
   S3_MAX_UPLOAD_SIZE_MB: 's3.maxUploadSizeMb',
+  /**
+   * `CR-035` · `REQ-SET-037` — รหัสไซต์ที่ใช้เป็นค่ากลางอ้างอิง (token `[site_code]`)
+   * ⚠️ **ไม่ใช่** `sites.code` ของแพลตฟอร์ม (ค่านั้นเป็น prefix ของ S3/subdomain ห้ามแก้จาก CMS)
+   */
+  ORDER_CODE_SITE_CODE: 'orderCode.siteCode',
+  /** `CR-035` · `REQ-SET-038` — pattern ของรหัสใบงาน · ว่าง = `ORDER_CODE_PATTERN_DEFAULT` */
+  ORDER_CODE_PATTERN: 'orderCode.pattern',
   MAIL_HOST: 'mail.host',
   MAIL_PORT: 'mail.port',
   MAIL_SECURE: 'mail.secure',

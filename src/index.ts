@@ -23,4 +23,6 @@ export * from './api/time-slots';
 export * from './ui/status-colors';
 
 export * from './api/rider-reports';
+export * from './api/staff-reports';
+export * from './api/order-code';
 export * from './api/sites';
