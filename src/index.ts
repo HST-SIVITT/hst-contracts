@@ -22,6 +22,7 @@ export * from './api/delivery-distance';
 export * from './api/time-slots';
 export * from './ui/status-colors';
 
+export * from './api/payout-eligibility';
 export * from './api/rider-reports';
 export * from './api/staff-reports';
 export * from './api/order-code';

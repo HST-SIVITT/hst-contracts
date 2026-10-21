@@ -1,8 +1,18 @@
 import { AssignmentRole, OrderStatus } from '../enums/order';
+import { payoutEligibleStatus } from './payout-eligibility';
 
 /** CR-027 / Q-073..076. Existing assignment roles, no new order statuses. */
 export type RiderReportLeg = typeof AssignmentRole.RIDER_OUTBOUND | typeof AssignmentRole.RIDER_INBOUND;
-export type RiderReportIssue = 'MISSING_RIDER' | 'UNVERIFIED_RIDER' | 'MISSING_DISTANCE' | 'MISSING_RATE' | 'UNCOMPLETED_LEG';
+/**
+ * `ORDER_NOT_COMPLETED` เพิ่มโดย `CR-036` · `REQ-RPT-021` — ใบงานยังไม่ "สำเร็จ"
+ * [DEPRECATED: `UNCOMPLETED_LEG` ถูกถอดออก · `CR-036` รอบ 2 (`Q-092`) 2026-10-21]
+ * ใบงานที่สำเร็จแล้วไม่ต้องมีหลักฐานของขาอีกต่อไป (คีย์ย้อนหลังได้) และใบที่ยังไม่สำเร็จ
+ * ถูกบล็อกด้วย `ORDER_NOT_COMPLETED` อยู่แล้ว ธงเดิมจึงไม่เหลือกรณีที่ใช้งาน
+ *
+ * [DEPRECATED: `UNVERIFIED_RIDER` ถูกถอดออก · `REQ-RPT-023` 2026-10-21 — ใบงานสำเร็จแล้ว
+ * เบิกได้ทุกขาไม่ว่าใครกด · หลักฐานผู้ทำเหลือหน้าที่เลือก "ผู้รับเงิน" เท่านั้น]
+ */
+export type RiderReportIssue = 'MISSING_RIDER' | 'MISSING_DISTANCE' | 'MISSING_RATE' | 'ORDER_NOT_COMPLETED';
 export interface RiderRateInput {
   name: string;
   startDate: string;
@@ -91,7 +101,8 @@ export function reportTotals(rows: RiderReportRow[]): RiderReportTotals {
     if (row.distanceKm === null) missingDistanceCount++;
     else if (outbound) outboundDistance += decimalHundredths(row.distanceKm);
     else inboundDistance += decimalHundredths(row.distanceKm);
-    if (row.amount !== null) {
+    // REQ-RPT-021: เงินของใบงานที่ยังไม่ "สำเร็จ" ไม่เข้ายอด แม้แถวจะมี amount ค้างมา
+    if (row.amount !== null && payoutEligibleStatus(row.orderStatus)) {
       if (outbound) outboundAmount += decimalHundredths(row.amount);
       else inboundAmount += decimalHundredths(row.amount);
     }

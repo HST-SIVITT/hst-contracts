@@ -1,4 +1,5 @@
 import { AssigneeType, AssignmentRole, OrderStatus } from '../enums/order';
+import { payoutEligibleStatus } from './payout-eligibility';
 import { decimalHundredths, hundredthsDecimal } from './rider-reports';
 
 /**
@@ -51,9 +52,13 @@ export function staffReportLegs(kind: StaffReportKind): readonly StaffPayoutLeg[
  */
 export type StaffPayoutIssue =
   | 'MISSING_ASSIGNEE'
-  | 'UNVERIFIED_ASSIGNEE'
+  /** [DEPRECATED: `UNVERIFIED_ASSIGNEE` ถูกถอดออก · `REQ-RPT-023` 2026-10-21] */
   | 'MISSING_RATE'
-  | 'UNCOMPLETED_CASE';
+  /**
+   * `CR-036` · `REQ-RPT-021` — ใบงานยังไม่ "สำเร็จ" จึงยังเบิกไม่ได้ทุกขา
+   * [DEPRECATED: `UNCOMPLETED_CASE` ถูกถอดออก · `CR-036` รอบ 2 (`Q-092`) 2026-10-21]
+   */
+  | 'ORDER_NOT_COMPLETED';
 
 export interface StaffPayoutRow {
   orderId: string;
@@ -127,7 +132,8 @@ export function staffPayoutTotals(rows: StaffPayoutRow[]): StaffPayoutTotals {
     // `REQ-RPT-020` — ใบงานที่ยกเลิกไม่เข้ายอดเลย แม้ค่าเก่าจะค้างอยู่ในแถว
     if (row.orderStatus === OrderStatus.CANCELLED) continue;
     if (row.issues.length) pendingCount += 1;
-    if (row.amount !== null) {
+    // `REQ-RPT-021` — ใบงานที่ยังไม่ "สำเร็จ" ไม่เข้ายอดและไม่นับว่าจ่ายได้
+    if (row.amount !== null && payoutEligibleStatus(row.orderStatus)) {
       const cents = decimalHundredths(row.amount);
       legs[row.leg].cents += cents;
       total += cents;
@@ -156,10 +162,19 @@ export function priceStaffPayoutRow(row: StaffPayoutRow): StaffPayoutRow {
   if (row.orderStatus === OrderStatus.CANCELLED) {
     return { ...row, amount: '0.00', issues: [] };
   }
+  /**
+   * `REQ-RPT-021` (`CR-036`) — ด่าน "ใบงานต้องสำเร็จ" ถูกติดธงที่นี่ **ที่เดียว**
+   * ไม่ใช่ที่ service เพื่อให้ทุกทางที่คิดราคาแถวได้ธงนี้เหมือนกัน (idempotent)
+   */
+  const issues: StaffPayoutIssue[] =
+    payoutEligibleStatus(row.orderStatus) || row.issues.includes('ORDER_NOT_COMPLETED')
+      ? row.issues
+      : [...row.issues, 'ORDER_NOT_COMPLETED'];
   return {
     ...row,
+    issues,
     amount:
-      !row.issues.length && row.feePerCase !== null
+      !issues.length && row.feePerCase !== null
         ? hundredthsDecimal(decimalHundredths(row.feePerCase))
         : null,
   };
