@@ -11,7 +11,21 @@ import type { AccountStatus } from '../enums/equipment';
 
 /** ตัวตนจาก LINE ID token หลัง server verify กับ LINE แล้วเท่านั้น (REQ-SEC-030) */
 export interface VerifiedLineIdentity {
+  /**
+   * **บทบาท** ที่หน้า LIFF นั้นให้บริการ — มาจาก path `/liff/:channel/...`
+   *
+   * ⚠️ ตั้งแต่ `REQ-SET-046` ค่านี้ **ไม่ใช่ OA เสมอไป** · ใช้ตัดสิน "ใครเป็นใคร/หน้าไหนของใคร"
+   * เท่านั้น (สิทธิ์ · เจ้าของ profile · token เชื่อมต่อบัญชี)
+   */
   channel: LineChannel;
+  /**
+   * **LINE OA จริง** ที่บทบาทนี้ถูกจัดสรรไปอยู่ (`REQ-SET-040`) — ใช้กับ **ทุกอย่างที่เป็นของ OA**:
+   * channel secret · access token · Login Channel ID · LIFF ID · แถว `line_accounts` ·
+   * `chat_threads` · ทุก endpoint ของ LINE
+   *
+   * ไซต์ที่มี OA ครบ 4 บัญชีค่านี้เท่ากับ `channel` เสมอ (การจัดสรรตั้งต้นเป็น 1:1)
+   */
+  oaChannel: LineChannel;
   lineUserId: string;
   displayName: string | null;
   pictureUrl: string | null;

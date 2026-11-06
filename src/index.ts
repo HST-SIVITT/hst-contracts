@@ -27,3 +27,4 @@ export * from './api/rider-reports';
 export * from './api/staff-reports';
 export * from './api/order-code';
 export * from './api/sites';
+export * from './api/line-rich-menu';

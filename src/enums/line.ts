@@ -117,9 +117,17 @@ export const LiffPage = {
 } as const;
 export type LiffPage = (typeof LiffPage)[keyof typeof LiffPage];
 
+/** ทุกหน้า LIFF ที่ระบบมี เรียงตามลำดับที่แสดงในฟอร์มตั้งค่า */
+export const LIFF_PAGES = [LiffPage.PROFILE, LiffPage.JOBS, LiffPage.LINK] as const;
+
 /**
- * หน้า LIFF ที่แต่ละ channel ต้องมี LIFF ID ของตัวเอง — FT-13 §A/B/C
+ * หน้า LIFF ที่แต่ละ channel **มีจริง** — FT-13 §A/B/C
  * คนไข้ไม่มีหน้า list งาน (ต้นฉบับให้ rich menu คนไข้ปุ่มเดียว)
+ *
+ * ⚠️ ตัวนี้เป็น **ด่านความปลอดภัย** ของ `LineLiffAuthService` (`REQ-SEC-030`) —
+ *    `/liff/patient/jobs` ต้องถูกปฏิเสธเพราะไม่มีหน้านั้นอยู่จริง
+ *    **ห้ามขยายตัวนี้เพื่อให้ฟอร์มตั้งค่ามีช่องกรอกเพิ่ม** — ใช้
+ *    `LINE_CHANNEL_CONFIGURABLE_LIFF_PAGES` สำหรับงานตั้งค่าแทน (`CR-039` · `Q-095`)
  */
 export const LINE_CHANNEL_LIFF_PAGES: Readonly<Record<LineChannel, readonly LiffPage[]>> = {
   [LineChannel.PATIENT]: [LiffPage.PROFILE, LiffPage.LINK],
@@ -127,6 +135,25 @@ export const LINE_CHANNEL_LIFF_PAGES: Readonly<Record<LineChannel, readonly Liff
   [LineChannel.TECHNICIAN]: [LiffPage.PROFILE, LiffPage.JOBS, LiffPage.LINK],
   // `REQ-DVM-007` — ชุดหน้าเดียวกับไรเดอร์: ดูโปรไฟล์/สลับสถานะพร้อมรับงาน + รายการงานของตัวเอง
   [LineChannel.DEVICE_MANAGER]: [LiffPage.PROFILE, LiffPage.JOBS, LiffPage.LINK],
+};
+
+/**
+ * หน้า LIFF ที่ **ตั้งค่า LIFF ID ได้** ต่อ channel — `CR-039` · `REQ-SET-041` · `Q-095`
+ *
+ * LIFF app ผูกกับ LINE Login channel ของ OA นั้น ๆ · `REQ-SET-040` ให้ย้าย **บทบาท**
+ * ไปอยู่ OA ไหนก็ได้ → ไซต์ที่ให้ Technician อยู่บน OA คนไข้ ต้องสร้าง LIFF app ของหน้า
+ * `jobs` **ใต้ channel คนไข้** แล้วต้องมีช่องให้กรอก ID นั้น
+ *
+ * แยกจาก `LINE_CHANNEL_LIFF_PAGES` โดยเจตนา: ตัวนั้นเป็นด่านของ auth (หน้าไหนเปิดได้)
+ * ตัวนี้เป็นเรื่องของ "ที่เก็บค่า" (ช่องไหนกรอกได้) — การกรอกค่าไว้ไม่ได้เปิดหน้าใหม่ให้ใคร
+ */
+export const LINE_CHANNEL_CONFIGURABLE_LIFF_PAGES: Readonly<
+  Record<LineChannel, readonly LiffPage[]>
+> = {
+  [LineChannel.PATIENT]: LIFF_PAGES,
+  [LineChannel.RIDER]: LIFF_PAGES,
+  [LineChannel.TECHNICIAN]: LIFF_PAGES,
+  [LineChannel.DEVICE_MANAGER]: LIFF_PAGES,
 };
 
 /**

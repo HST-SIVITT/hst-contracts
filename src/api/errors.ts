@@ -74,6 +74,13 @@ export const ErrorCode = {
   SITE_CODE_TAKEN: 'SITE_CODE_TAKEN',
   /** โดเมนนี้ถูกผูกกับ site อื่นไปแล้ว — `REQ-CTR-003` */
   SITE_DOMAIN_TAKEN: 'SITE_DOMAIN_TAKEN',
+  /**
+   * `CR-039` · `REQ-SET-043` — LINE ปฏิเสธคำขอ rich menu (สร้าง/อัปโหลดรูป/alias/ผูกผู้ใช้)
+   * รายละเอียดจาก LINE อยู่ใน log ฝั่ง server เท่านั้น (กติกาเดียวกับ `LINE_MESSAGE_SEND_FAILED`)
+   */
+  LINE_RICH_MENU_PUBLISH_FAILED: 'LINE_RICH_MENU_PUBLISH_FAILED',
+  /** `CR-039` · `REQ-SET-044` — ผังยังไม่ครบตามกติกาของ LINE · `details.issues` บอกว่าขาดอะไร */
+  LINE_RICH_MENU_INVALID: 'LINE_RICH_MENU_INVALID',
   /** ใช้กับ validation error ทั่วไปที่ไม่มี code เฉพาะ */
   VALIDATION_FAILED: 'VALIDATION_FAILED',
   NOT_FOUND: 'NOT_FOUND',
