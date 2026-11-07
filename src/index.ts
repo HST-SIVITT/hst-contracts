@@ -13,6 +13,7 @@ export * from './api/errors';
 export * from './api/response';
 export * from './api/settings';
 export * from './api/videocon';
+export * from './api/tele-link';
 export * from './api/addresses';
 export * from './api/line';
 export * from './api/message-templates';

@@ -66,6 +66,11 @@ export const SettingKey = {
   GENERAL_NAVIGATION_LOADING_ENABLED: 'general.navigationLoadingEnabled',
   /** จำนวนไฟล์สูงสุดต่อการอัปเดตสถานะ 1 ครั้ง — REQ-ORD-030 · คำตอบ `Q-042` ข้อ 3 (T-095) */
   GENERAL_ORDER_STATUS_ATTACHMENT_MAX_FILES: 'general.orderStatusAttachmentMaxFiles',
+  /**
+   * `CR-041` · `REQ-SET-047` — toast แจ้งผลกลางหน้าจอค้างกี่วินาทีก่อนหายเอง
+   * ห้าม hardcode ที่ component (REQ-SET-001) · `0` ไม่อนุญาต เพราะจะกลายเป็นกะพริบแล้วหาย
+   */
+  GENERAL_TOAST_DURATION_SECONDS: 'general.toastDurationSeconds',
   /** base URL ของหน้าห้องประชุม; ว่าง = ใช้ origin จาก LIFF_BASE_URL (`REQ-SET-027`) */
   CONSULT_BASE_URL: 'consult.baseUrl',
   CONSULT_PATIENT_PATH_TEMPLATE: 'consult.patientPathTemplate',
@@ -158,6 +163,12 @@ export const SESSION_CHECK_INTERVAL_DEFAULT_SECONDS = 60;
 export const SECURITY_LOCKOUT_MAX_MINUTES_DEFAULT = 15;
 
 /**
+ * `CR-041` · `REQ-SET-047` — อายุ toast แจ้งผลตั้งต้น (วินาที)
+ * เจ้าของงานกำหนดมาเอง: ต้องค้างนานพอให้ผู้ใช้ที่ละสายตาจากจอกลับมาอ่านทัน
+ */
+export const TOAST_DURATION_DEFAULT_SECONDS = 300;
+
+/**
  * ขอบเขตของค่าตั้งค่าที่เป็นตัวเลข — **แหล่งความจริงเดียว** ที่ทั้ง API และ web ใช้ร่วมกัน
  *
  * ค่าของ `auditLogRetentionDays` มาจากเจ้าของงานโดยตรง (ADR-024)
@@ -180,6 +191,8 @@ export const SETTING_NUMBER_BOUNDS: Readonly<Record<string, { min: number; max: 
   [SettingKey.MAIL_PORT]: { min: 1, max: 65535 },
   // เจ้าของงานตอบ `Q-042` ว่าให้ปรับได้ · เพดานบน 30 คือ ORDER_STATUS_ATTACHMENT_MAX_FILES_HARD_CAP
   [SettingKey.GENERAL_ORDER_STATUS_ATTACHMENT_MAX_FILES]: { min: 1, max: 30 },
+  // `CR-041` — ต่ำกว่า 3 วินาทีอ่านไม่ทัน · เกิน 10 นาที toast ค้างข้ามงานไปหลายหน้า
+  [SettingKey.GENERAL_TOAST_DURATION_SECONDS]: { min: 3, max: 600 },
   // เพดานบน 100 MB เป็นค่าที่ตั้งไว้ก่อน รอเจ้าของงานยืนยัน (`Q-028`)
   [SettingKey.S3_MAX_UPLOAD_SIZE_MB]: { min: 1, max: 100 },
 };
