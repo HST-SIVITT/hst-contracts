@@ -28,6 +28,13 @@ export const AttachmentOwnerType = {
    *    เพราะ `REQ-ORD-031` ต้องแยกรูปตามสถานะที่อัปเดตเข้ามาแต่ละครั้ง
    */
   ORDER_STATUS_ATTACHMENT: 'ORDER_STATUS_ATTACHMENT',
+  /**
+   * `CR-043` · `REQ-CHT-020` — รูป/ไฟล์ที่ **CMS ส่งออก** ไปให้คู่สนทนาในหน้า Chat
+   * ⚠️ เจ้าของคือ **แถวใน `chat_messages`** ไม่ใช่ `chat_threads` — 1 ไฟล์ = 1 ข้อความ
+   * ⚠️ ไฟล์กลุ่มนี้ถูกอ่านผ่าน **ลิงก์สาธารณะที่เซ็น HMAC** ด้วย เพราะ LINE ต้องดึงรูปเอง
+   *    (ADR-076) ต่างจากไฟล์แนบกลุ่มอื่นที่อ่านได้เฉพาะคนมี session ของ CMS
+   */
+  CHAT_OUTBOUND_FILE: 'CHAT_OUTBOUND_FILE',
 } as const;
 export type AttachmentOwnerType = (typeof AttachmentOwnerType)[keyof typeof AttachmentOwnerType];
 
@@ -49,6 +56,11 @@ export const ATTACHMENT_ACCEPTED_MIME: Readonly<Record<AttachmentOwnerType, read
     'image/webp',
     'application/pdf',
   ],
+  /**
+   * `REQ-CHT-020` — **ไม่มี `image/webp`** โดยตั้งใจ: LINE รับ image message แค่ JPEG/PNG
+   * ส่ง webp ไปผู้ใช้จะเห็นช่องรูปเสียในแอป LINE (ดู `LINE_IMAGE_MESSAGE_MIME`)
+   */
+  [AttachmentOwnerType.CHAT_OUTBOUND_FILE]: ['image/jpeg', 'image/png', 'application/pdf'],
 };
 
 /** นามสกุลที่ยอมให้ตั้งชื่อไฟล์ที่เก็บ — กัน path traversal และไฟล์ที่ execute ได้ */

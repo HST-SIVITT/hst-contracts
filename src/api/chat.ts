@@ -1,4 +1,4 @@
-import { ChatMessageType, type ChatMessageDirection } from '../enums/chat';
+import { ChatMessageType, type ChatMessageDirection, type ChatThreadState } from '../enums/chat';
 import type { LineChannel } from '../enums/line';
 import type { LineLinkStatus, OwnerType } from '../enums/profile';
 
@@ -24,6 +24,14 @@ export interface ChatThreadListItemView {
    * (ห้ามให้ API เขียนคำไทยลง `lastMessagePreview` เพราะผู้ใช้ภาษาอังกฤษจะเห็นคำไทย · `REQ-INF-002`)
    */
   lastMessageType: ChatMessageType | null;
+  /**
+   * `CR-043` · `REQ-CHT-016/017` — สถานะการแสดงในรายชื่อของ channel นี้
+   * รายการปกติเป็น `ACTIVE` เสมอ · ค่าอื่นโผล่เฉพาะใน popup จัดการรายชื่อ (`REQ-CHT-019`)
+   */
+  state: ChatThreadState;
+  /** เวลาที่ถูกซ่อน/ถูกบล็อค — ใช้เรียงใน popup และบอกผู้ใช้ว่าทำไปเมื่อไหร่ */
+  hiddenAt: string | null;
+  blockedAt: string | null;
 }
 
 /**
@@ -31,7 +39,50 @@ export interface ChatThreadListItemView {
  * — API ใช้ตัดสินว่าจะยอม proxy ให้ไหม และ UI ใช้ตัดสินว่าจะโหลดรูปมาแสดงไหม **ต้องตรงกันเสมอ**
  */
 export function hasChatMessageContent(type: ChatMessageType): boolean {
-  return type === ChatMessageType.IMAGE || type === ChatMessageType.STICKER;
+  return (
+    type === ChatMessageType.IMAGE ||
+    type === ChatMessageType.STICKER ||
+    // `CR-043` · `REQ-CHT-020` — ไฟล์ที่ CMS ส่งออกอยู่บนที่เก็บไฟล์ของระบบ ไม่ใช่ที่ LINE
+    type === ChatMessageType.FILE
+  );
+}
+
+/**
+ * `CR-043` · `REQ-CHT-020` — ชนิดไฟล์ที่ LINE รับเป็น **image message** ได้จริง
+ *
+ * ⚠️ LINE รับแค่ JPEG/PNG · `image/webp` ส่งไปแล้วผู้ใช้จะเห็นช่องรูปเสียในแอป LINE
+ *    ชนิดอื่นที่ระบบยอมให้อัปโหลดจึงถูกส่งเป็น "ข้อความ + ลิงก์ดาวน์โหลด" แทน
+ */
+export const LINE_IMAGE_MESSAGE_MIME: readonly string[] = ['image/jpeg', 'image/png'];
+
+/** ไฟล์นี้ส่งเป็น image message ของ LINE ได้ไหม — API และ UI ต้องตัดสินด้วยตัวเดียวกัน */
+export function sendsAsLineImage(mime: string): boolean {
+  return LINE_IMAGE_MESSAGE_MIME.includes(mime);
+}
+
+/**
+ * payload ของข้อความ OUTBOUND ที่มีไฟล์แนบ (`REQ-CHT-020`)
+ * — UI อ่าน `attachmentId` ไปขอไฟล์ที่ `GET /chat/messages/:id/content` เหมือนรูปขา INBOUND
+ */
+export interface ChatOutboundFilePayload {
+  attachmentId: string;
+  originalName: string;
+  mime: string;
+  size: number;
+}
+
+/** อ่าน payload ไฟล์แนบออกจากข้อความแบบปลอดภัย — คืน `null` เมื่อข้อความนี้ไม่มีไฟล์ของระบบ */
+export function chatOutboundFileOf(
+  payload: Record<string, unknown> | null,
+): ChatOutboundFilePayload | null {
+  const id = payload?.attachmentId;
+  if (typeof id !== 'string' || !id) return null;
+  return {
+    attachmentId: id,
+    originalName: typeof payload?.originalName === 'string' ? payload.originalName : '',
+    mime: typeof payload?.mime === 'string' ? payload.mime : '',
+    size: typeof payload?.size === 'number' ? payload.size : 0,
+  };
 }
 
 export interface ChatMessageView {
@@ -75,4 +126,19 @@ export interface ChatLineConnectCardResult {
   sent: true;
   ownerType: OwnerType;
   ownerId: string;
+}
+
+/** ผลของการซ่อน/บล็อค/ปลด 1 คู่สนทนา (`REQ-CHT-016/017`) */
+export interface ChatThreadStateResult {
+  id: string;
+  state: ChatThreadState;
+  hiddenAt: string | null;
+  blockedAt: string | null;
+}
+
+/** ผลของการลบประวัติการสนทนาเฉพาะราย (`REQ-CHT-018`) */
+export interface ChatThreadHistoryClearedResult {
+  id: string;
+  /** จำนวนข้อความที่ถูกลบจริง — ใช้บอกผู้ใช้ใน toast ว่าล้างไปกี่ข้อความ */
+  deletedMessages: number;
 }

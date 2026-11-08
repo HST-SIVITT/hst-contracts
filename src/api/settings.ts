@@ -67,10 +67,22 @@ export const SettingKey = {
   /** จำนวนไฟล์สูงสุดต่อการอัปเดตสถานะ 1 ครั้ง — REQ-ORD-030 · คำตอบ `Q-042` ข้อ 3 (T-095) */
   GENERAL_ORDER_STATUS_ATTACHMENT_MAX_FILES: 'general.orderStatusAttachmentMaxFiles',
   /**
-   * `CR-041` · `REQ-SET-047` — toast แจ้งผลกลางหน้าจอค้างกี่วินาทีก่อนหายเอง
-   * ห้าม hardcode ที่ component (REQ-SET-001) · `0` ไม่อนุญาต เพราะจะกลายเป็นกะพริบแล้วหาย
+   * `CR-041` · `CR-043` ข้อ 4 · `REQ-SET-047` — toast แจ้งผลกลางหน้าจอค้างกี่ **มิลลิวินาที**
+   *
+   * ⚠️ คีย์เดิมคือ `general.toastDurationSeconds` (หน่วยวินาที) — `CR-043` เปลี่ยนหน่วยเพราะ
+   *    หลักวินาทีหยาบเกินไป · migration `0058` ย้ายค่าเดิมมาคีย์นี้แล้ว **ห้ามอ่านคีย์เดิมอีก**
+   * ⚠️ ห้าม hardcode ที่ component (REQ-SET-001) · `0` ไม่อนุญาต เพราะจะกลายเป็นกะพริบแล้วหาย
    */
-  GENERAL_TOAST_DURATION_SECONDS: 'general.toastDurationSeconds',
+  GENERAL_TOAST_DURATION_MS: 'general.toastDurationMs',
+  /**
+   * `Q-098` · `REQ-SET-048` — origin ของ **API ของไซต์นี้** ที่ใช้ประกอบลิงก์ไฟล์ส่งเข้า LINE
+   *
+   * ว่าง = ใช้ env `APP_BASE_URL` ของ deployment (ถูกแล้วเมื่อทุกไซต์ใช้โดเมน API เดียวกัน)
+   * ⚠️ ต้องเป็น **https สาธารณะ** ที่เซิร์ฟเวอร์ของ LINE ดึงถึง — localhost รูปจะไม่ขึ้น (ADR-076)
+   * ⚠️ ห้ามประกอบลิงก์จาก `Host` ของคำขอแทนค่านี้ (ADR-079) — header นั้นผู้เรียกปลอมได้
+   *    และลิงก์ที่ประกอบจากมันจะไปโผล่ในห้องแชต LINE ของคนไข้
+   */
+  GENERAL_API_BASE_URL: 'general.apiBaseUrl',
   /** base URL ของหน้าห้องประชุม; ว่าง = ใช้ origin จาก LIFF_BASE_URL (`REQ-SET-027`) */
   CONSULT_BASE_URL: 'consult.baseUrl',
   CONSULT_PATIENT_PATH_TEMPLATE: 'consult.patientPathTemplate',
@@ -163,10 +175,15 @@ export const SESSION_CHECK_INTERVAL_DEFAULT_SECONDS = 60;
 export const SECURITY_LOCKOUT_MAX_MINUTES_DEFAULT = 15;
 
 /**
- * `CR-041` · `REQ-SET-047` — อายุ toast แจ้งผลตั้งต้น (วินาที)
- * เจ้าของงานกำหนดมาเอง: ต้องค้างนานพอให้ผู้ใช้ที่ละสายตาจากจอกลับมาอ่านทัน
+ * `CR-043` ข้อ 4 · `REQ-SET-047` — อายุ toast แจ้งผลตั้งต้น (**มิลลิวินาที**)
+ *
+ * เจ้าของงานแจ้งว่าหน่วยวินาทีของ `CR-041` นานเกินไป → เริ่มใหม่ที่ 4 วินาที
+ * ซึ่งเป็นค่าที่อ่านทันแต่ไม่ค้างข้ามงาน (assumption `Q-096`) · ปรับได้ในเมนูตั้งค่าเสมอ
  */
-export const TOAST_DURATION_DEFAULT_SECONDS = 300;
+export const TOAST_DURATION_DEFAULT_MS = 4000;
+
+/** ค่าตั้งต้นเดิมหน่วยวินาที — เหลือไว้ให้ migration `0058` อ้างว่า "ยังไม่เคยถูกตั้งเอง" */
+export const TOAST_DURATION_LEGACY_DEFAULT_SECONDS = 300;
 
 /**
  * ขอบเขตของค่าตั้งค่าที่เป็นตัวเลข — **แหล่งความจริงเดียว** ที่ทั้ง API และ web ใช้ร่วมกัน
@@ -191,8 +208,8 @@ export const SETTING_NUMBER_BOUNDS: Readonly<Record<string, { min: number; max: 
   [SettingKey.MAIL_PORT]: { min: 1, max: 65535 },
   // เจ้าของงานตอบ `Q-042` ว่าให้ปรับได้ · เพดานบน 30 คือ ORDER_STATUS_ATTACHMENT_MAX_FILES_HARD_CAP
   [SettingKey.GENERAL_ORDER_STATUS_ATTACHMENT_MAX_FILES]: { min: 1, max: 30 },
-  // `CR-041` — ต่ำกว่า 3 วินาทีอ่านไม่ทัน · เกิน 10 นาที toast ค้างข้ามงานไปหลายหน้า
-  [SettingKey.GENERAL_TOAST_DURATION_SECONDS]: { min: 3, max: 600 },
+  // `CR-043` ข้อ 4 — ต่ำกว่า 300 ms กะพริบแล้วหาย · เกิน 60 วินาที toast ค้างข้ามงานไปหลายหน้า
+  [SettingKey.GENERAL_TOAST_DURATION_MS]: { min: 300, max: 60_000 },
   // เพดานบน 100 MB เป็นค่าที่ตั้งไว้ก่อน รอเจ้าของงานยืนยัน (`Q-028`)
   [SettingKey.S3_MAX_UPLOAD_SIZE_MB]: { min: 1, max: 100 },
 };
