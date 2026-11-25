@@ -169,6 +169,33 @@ export const TECHNICIAN_ASSIGNMENT_ROLES = [
   AssignmentRole.TECHNICIAN_READER,
 ] as const;
 
+/**
+ * `CR-045` ข้อ 1 · `REQ-ORD-085` — บทบาทที่ **มีได้มากกว่า 1 คนต่อใบงาน**
+ *
+ * เคสพิเศษของคลินิก: 1 เคสอาจต้องใช้ช่าง Tele หรือช่างอ่านผลมากกว่า 1 คน
+ * (ปกติประเภทละ 1 คน) · ค่าตอบแทนคิด **รายเคสต่อคน** จึงทวีคูณตามจำนวนคนที่ลงชื่อ
+ *
+ * ⚠️ ไรเดอร์และผู้ดูแลอุปกรณ์ **ไม่อยู่ในรายการนี้** — ยังคนเดียวต่อบทบาทเหมือนเดิม
+ *    (ขาส่ง/ขากลับแยกบทบาทกันอยู่แล้ว · ฟอร์มไม่มีปุ่มเพิ่มให้)
+ * ⚠️ คนแรกของบทบาท (`position = 0`) เป็น **คนหลัก** — เป็นผู้รับการ์ดแจ้งเตือน LINE
+ *    และเป็นค่าที่ API คืนใน `assignees[role]` (รูปแบบเดิมที่หน้า list/print ใช้อยู่)
+ */
+export const MULTI_ASSIGNEE_ROLES = [
+  AssignmentRole.TECHNICIAN,
+  AssignmentRole.TECHNICIAN_READER,
+] as const;
+
+/** `REQ-ORD-085` — บทบาทนี้ใส่ได้หลายคนไหม (ห้ามเทียบชื่อ role เองตามจุดใช้งาน) */
+export function roleAcceptsManyAssignees(role: AssignmentRole): boolean {
+  return (MULTI_ASSIGNEE_ROLES as readonly AssignmentRole[]).includes(role);
+}
+
+/**
+ * `REQ-ORD-085` — เพดานจำนวนคนต่อบทบาท (กันฟอร์ม/payload บวม ไม่ใช่กฎธุรกิจ)
+ * เคสจริงใช้ 1–2 คน · ตั้งเป็นค่าคงที่เพราะเจ้าของงานไม่ได้ขอให้ปรับในเมนูตั้งค่า
+ */
+export const MAX_ASSIGNEES_PER_ROLE = 10;
+
 /** บทบาทในใบงาน → ชนิดของผู้รับงาน — ห้ามเดาเอง ใช้ตัวนี้ที่เดียว */
 export function assigneeTypeForRole(role: AssignmentRole): AssigneeType {
   if (role === AssignmentRole.DEVICE_MANAGER) return AssigneeType.DEVICE_MANAGER;
