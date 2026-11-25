@@ -551,6 +551,15 @@ export function orderNotifyState(
 /** ประวัติการส่งล่าสุดของแต่ละฝั่ง — `null` ใน `sentAt` = ยังไม่เคยส่งฝั่งนั้น */
 export interface OrderNotificationView {
   recipient: OrderNotificationRecipient;
+  /**
+   * `REQ-ORD-086` (`CR-049`) — ตัวบุคคลของแถวนี้ (`technicians.id` / `patients.id`)
+   *
+   * ⚠️ ช่าง Tele มีได้ **หลายคนต่อใบงาน** (`REQ-ORD-085`) จึงมีได้หลายแถวที่ `recipient`
+   *    เป็น `TECHNICIAN` เหมือนกัน — คีย์ของผู้รับหนึ่งรายคือคู่ **`recipient` + `ownerId`**
+   *    ห้ามใช้ `recipient` เดี่ยว ๆ เป็นคีย์ของ map/checkbox อีกต่อไป
+   * `null` = ใบงานยังไม่มีคนฝั่งนั้น (แถวว่างไว้บอกผู้ใช้)
+   */
+  ownerId: string | null;
   /** ชื่อผู้รับ ณ ตอนแสดงผล (ชื่อไทย) — `null` เมื่อใบงานยังไม่มีคนฝั่งนั้น */
   name: string | null;
   /** ยังไม่ได้ผูก LINE = ส่งไม่ได้ ต้องบอกผู้ใช้ก่อนกดปุ่ม ไม่ใช่ปล่อยให้ error ตอนส่ง */
