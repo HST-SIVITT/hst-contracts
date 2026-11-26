@@ -19,6 +19,11 @@ export const SettingGroup = {
    * และมี 2 ค่าที่เป็นไฟล์รูป ซึ่งฟอร์มกลางของหมวดอื่นเรนเดอร์เป็นช่องข้อความไม่ได้
    */
   VIDEOCON: 'videocon',
+  /**
+   * อัตลักษณ์ของระบบ: โลโก้ + ชื่อระบบ TH/EN — `REQ-SET-049` (`CR-051`)
+   * แยกจาก `GENERAL` เพราะมีค่าที่เป็นไฟล์รูป ซึ่งฟอร์มกลางเรนเดอร์ไม่ได้ (แม่แบบเดียวกับ `VIDEOCON`)
+   */
+  BRANDING: 'branding',
   ORDER_STATUS_COLORS: 'order-status-colors',
   /**
    * รูปแบบรหัสใบงาน — `CR-035` · `REQ-SET-037`..`REQ-SET-039`
@@ -101,6 +106,15 @@ export const SettingKey = {
   /** `REQ-SET-035` — ลิงก์ปุ่ม "ประกาศความเป็นส่วนตัว" · ว่าง = ใช้ของเดิมที่มากับระบบ */
   VIDEOCON_PRIVACY_URL: 'videocon.privacyUrl',
   VIDEOCON_COPYRIGHT: 'videocon.copyright',
+  /**
+   * `REQ-SET-049`..`REQ-SET-052` (`CR-051`) — อัตลักษณ์ของระบบทั้ง CMS
+   * ⚠️ `branding.logo` เก็บเป็น JSON `BrandingImage` (ไม่ใช่ URL) ด้วยเหตุผลเดียวกับ `videocon.logo`
+   * ⚠️ ชื่อระบบแยก 2 คอลัมน์ตามภาษา **ไม่ใช่** JSON ก้อนเดียว — ฟอร์มกลาง/`check:locales`
+   *    และ `TEXT_MAX_LENGTH` ตรวจความยาวได้ต่อภาษาตรง ๆ
+   */
+  BRANDING_LOGO: 'branding.logo',
+  BRANDING_SYSTEM_NAME_TH: 'branding.systemNameTh',
+  BRANDING_SYSTEM_NAME_EN: 'branding.systemNameEn',
   GOOGLE_MAPS_API_KEY: 'google.mapsApiKey',
   S3_ENDPOINT: 's3.endpoint',
   S3_REGION: 's3.region',
